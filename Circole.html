@@ -1,0 +1,3077 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circole - Number Label Maker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 348 348'%3E%3Ccircle cx='174' cy='174' r='165' fill='%23ffffff' stroke='%23000000' stroke-width='18'/%3E%3Cpath fill='%23000000' d='M177.02,210.06c12.53,0,21.94-6.2,28.25-18.6l9.9,4.95c-3.68,7.7-8.86,13.56-15.52,17.58-6.67,4.02-14.4,6.03-23.2,6.03s-16.84-1.88-23.36-5.65c-6.52-3.77-11.52-9.13-15.01-16.09s-5.24-15.18-5.24-24.66,1.73-17.69,5.21-24.5c3.47-6.81,8.46-12.04,14.98-15.68,6.52-3.64,14.3-5.46,23.36-5.46,9.52,0,17.48,1.86,23.87,5.59,6.39,3.72,11.09,9.25,14.09,16.57l-11.49,3.81c-2.07-5.21-5.41-9.18-10-11.93s-10.04-4.13-16.35-4.13c-9.9,0-17.6,3.18-23.1,9.55-5.5,6.37-8.25,15.1-8.25,26.18,0,7.28,1.3,13.66,3.9,19.14,2.6,5.48,6.28,9.73,11.04,12.76s10.4,4.54,16.92,4.54h0Z'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 50: '#f0f9ff', 500: '#0284c7', 600: '#0369a1' } } } } }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400;1,700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Fira+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Gelasio:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Oswald:wght@400;700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Anton&display=swap" rel="stylesheet">
+		<style>
+    :root { --active-font: 'Arimo', Arial, sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
+    .artboard-container { flex: 0 0 auto !important; flex-shrink: 0 !important; transform-origin: center center; transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1); }
+    #artboardWrapper.paper-clip { overflow: hidden !important; }
+    #gridContainer { display: grid; box-sizing: border-box; }
+    .cell { position: relative; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+    .cell.has-grid-border { border: 1px dashed rgba(100, 116, 139, 0.5); }
+    .cell.is-active-cell { box-shadow: inset 0 0 0 3px #0284c7, 0 0 0 3px #0284c7; border-radius: 2px; z-index: 5; }
+    .dark .cell.has-grid-border { border-color: rgba(148, 163, 184, 0.35); }
+    .cell-inner { position: relative; display: flex; align-items: center; justify-content: center; }
+    .cell-shape-shadow { position: absolute; pointer-events: none; transition: all 0.1s; }
+    .cell-number-wrapper { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; }
+    .cell-text-shadow { position: absolute; pointer-events: none; transition: all 0.1s; white-space: nowrap; }
+    .cell-number { user-select: none; display: inline-block; position: relative; z-index: 10; }
+    .brand-lockup-light { display: inline-block; }
+    .brand-lockup-dark { display: none; }
+    .dark .brand-lockup-light { display: none; }
+    .dark .brand-lockup-dark { display: inline-block; }
+  </style>
+</head>
+<body class="h-full flex flex-col lg:flex-row bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 antialiased overflow-hidden font-sans">
+
+  <header class="lg:hidden flex items-center justify-between px-3 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 shrink-0 no-print">
+    <div class="flex items-center gap-2">
+      <svg class="brand-lockup-light h-7" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+        <circle cx="66.04" cy="66.04" r="64.04" fill="#fff" stroke="#000" stroke-width="4"/>
+        <path fill="#000" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+        <g fill="#231f20">
+          <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+          <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+          <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+          <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+          <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+          <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+          <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+        </g>
+      </svg>
+      <svg class="brand-lockup-dark h-7" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+        <circle cx="66.04" cy="66.04" r="64.04" fill="none" stroke="#fff" stroke-width="4"/>
+        <path fill="#fff" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+        <g fill="#fff">
+          <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+          <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+          <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+          <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+          <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+          <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+          <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+        </g>
+      </svg>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.6</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="btnMobileHelp" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+        <i data-lucide="info" class="w-4 h-4"></i>
+      </button>
+      <select id="selectLangMobile" class="text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 outline-none">
+        <option value="en" selected>EN</option>
+        <option value="es">ES</option>
+      </select>
+      <button id="btnMobileTheme" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+        <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+        <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+      </button>
+      <button id="btnToggleSidebar" class="p-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 flex items-center justify-center">
+        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden lg:hidden no-print"></div>
+
+  <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-80 sm:w-96 lg:static lg:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0 no-print">
+    <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <svg class="brand-lockup-light h-8" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+          <circle cx="66.04" cy="66.04" r="64.04" fill="#fff" stroke="#000" stroke-width="4"/>
+          <path fill="#000" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+          <g fill="#231f20">
+            <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+            <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+            <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+            <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+            <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+            <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+            <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+          </g>
+        </svg>
+        <svg class="brand-lockup-dark h-8" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+          <circle cx="66.04" cy="66.04" r="64.04" fill="none" stroke="#fff" stroke-width="4"/>
+          <path fill="#fff" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+          <g fill="#fff">
+            <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+            <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+            <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+            <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+            <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+            <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+            <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+          </g>
+        </svg>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.6</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="btnLoadSettings" title="Load Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span id="lblLoadBtn">Load</span>
+        </button>
+        <input type="file" id="settingsFileInput" accept=".circole,.json" class="hidden" />
+        <button id="btnSaveSettings" title="Save Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> <span id="lblSaveBtn">Save</span>
+        </button>
+        <button id="btnCloseSidebar" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 ml-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+      <!-- 1. Number & Label -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab1">
+          <span class="flex items-center gap-2"><i data-lucide="hash" class="w-4 h-4 text-sky-500"></i><span id="txtTabNumber">Number & Label</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab1" class="accordion-content p-4 space-y-3 bg-white dark:bg-slate-900">
+          <div>
+            <label id="lblNumber" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Number (↑↓ ±1, ←→ Jump)</label>
+            <div class="flex items-center gap-1">
+              <button id="btnBigMinus" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-xs font-bold hover:bg-slate-200">-10</button>
+              <button id="btnMinus" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-bold hover:bg-slate-200">−</button>
+              <input type="text" id="inputNum" value="0" class="flex-1 min-w-0 text-center py-1.5 font-bold text-lg rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 outline-none" />
+              <button id="btnPlus" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-bold hover:bg-slate-200">+</button>
+              <button id="btnBigPlus" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-xs font-bold hover:bg-slate-200">+10</button>
+            </div>
+            <p id="errorMsg" class="text-xs text-rose-500 font-semibold mt-1 hidden">Only digits (0-9) allowed</p>
+            <p id="cellHint" class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold mt-1 hidden"><span id="lblCellHint">Editing cell</span> <span id="cellHintIdx">1</span></p>
+          </div>
+
+          <div>
+            <label id="lblAffix" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Route Prefix / Suffix (e.g. A, Ex)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="inputPrefix" placeholder="Prefix (Line)" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-sky-500" />
+              <input type="text" id="inputSuffix" placeholder="Suffix (A)" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+          </div>
+
+          <div>
+            <label id="lblJump" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Jump Amount (← / →)</label>
+            <select id="jumpStepSelect" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none">
+              <option value="5">±5</option>
+              <option value="10" selected>±10</option>
+              <option value="25">±25</option>
+              <option value="50">±50</option>
+              <option value="100">±100</option>
+              <option value="500">±500</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Shape & Frame -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab2">
+          <span class="flex items-center gap-2"><i data-lucide="square" class="w-4 h-4 text-sky-500"></i><span id="txtTabShape">Shape & Frame</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab2" class="accordion-content p-4 space-y-3 bg-white dark:bg-slate-900 hidden">
+          <div>
+            <label id="lblFrame" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Shape Frame</label>
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <button id="btnBorderOn" class="py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm">Show Frame</button>
+              <button id="btnBorderOff" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400">No Frame</button>
+            </div>
+          </div>
+          <div id="shapeTypeSection">
+            <label id="lblBase" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Shape Base</label>
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <button id="btnShapeCircle" class="py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm">Round</button>
+              <button id="btnShapeSquare" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400">Box</button>
+            </div>
+          </div>
+          <div id="dimWidthSection">
+            <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+              <span id="lblWidth">Width</span><span><span id="widthVal">340</span>px</span>
+            </div>
+            <input type="range" id="sliderWidth" min="80" max="1000" value="340" class="w-full accent-sky-500" />
+          </div>
+          <div id="dimHeightSection">
+            <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+              <span id="lblHeight">Height</span><span><span id="heightVal">340</span>px</span>
+            </div>
+            <input type="range" id="sliderHeight" min="80" max="1000" value="340" class="w-full accent-sky-500" />
+          </div>
+          <div id="roundnessContainer">
+            <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+              <span id="lblRound">Corner Roundness</span><span><span id="roundVal">0</span>px</span>
+            </div>
+            <input type="range" id="sliderRoundness" min="0" max="150" value="0" class="w-full accent-sky-500" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Paper Mode -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab3">
+          <span class="flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-sky-500"></i><span id="txtTabCanvas">Paper Mode</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab3" class="accordion-content p-4 space-y-3 bg-white dark:bg-slate-900 hidden">
+          <div>
+            <label id="lblCanvasMode" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Canvas Sheet</label>
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <button id="btnModeFit" class="py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm">Single Label</button>
+              <button id="btnModePaper" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400">Paper Sheet</button>
+            </div>
+          </div>
+
+          <div id="paperSettingsContainer" class="space-y-3 hidden">
+            <div>
+              <label id="lblPaperSize" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Paper Size</label>
+              <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <button id="btnPaperA4" class="py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm">A4</button>
+                <button id="btnPaperLetter" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400"><span id="lblPaperLetter">US Letter</span></button>
+              </div>
+            </div>
+
+            <div>
+              <label id="lblOrientation" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Orientation</label>
+              <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <button id="btnOrientPortrait" class="py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center gap-1">
+                  <i data-lucide="file" class="w-3.5 h-3.5"></i><span id="lblPortrait">Portrait</span>
+                </button>
+                <button id="btnOrientLandscape" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5 rotate-90"></i><span id="lblLandscape">Landscape</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1" id="lblGridCols">Columns</label>
+                <input type="number" id="inputGridCols" min="1" max="10" value="1" class="w-full px-2 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none text-center font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1" id="lblGridRows">Rows</label>
+                <input type="number" id="inputGridRows" min="1" max="10" value="1" class="w-full px-2 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none text-center font-bold" />
+              </div>
+            </div>
+
+            <p id="lblNavHint" class="text-[10px] text-slate-400 leading-snug">PgUp / PgDn to move between cells. Ctrl+Arrows to move in the grid.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Colors -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab4">
+          <span class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-sky-500"></i><span id="txtTabColors">Colors</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab4" class="accordion-content p-4 space-y-4 bg-white dark:bg-slate-900 hidden">
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center">
+              <label id="lblBgType" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Label Background</label>
+              <div class="flex gap-1 text-[11px] font-semibold">
+                <button id="btnBgSolid" class="px-2 py-0.5 rounded bg-sky-600 text-white">Solid</button>
+                <button id="btnBgGrad" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Gradient</button>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="color" id="bgColor1" value="#ffffff" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent shrink-0" />
+              <input type="color" id="bgColor2" value="#e2e8f0" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent hidden shrink-0" />
+              <div id="bgAngleContainer" class="flex-1 items-center gap-2 hidden">
+                <input type="range" id="bgAngle" min="0" max="360" value="135" class="w-full accent-sky-500" />
+                <span class="text-xs text-slate-400 font-bold w-7" id="bgAngleVal">135°</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-[11px] font-semibold text-slate-400 w-16" id="lblBgOpacity">Opacity</span>
+              <input type="range" id="bgOpacity" min="0" max="100" value="100" class="flex-1 accent-sky-500" />
+              <span class="text-xs text-slate-400 font-bold w-9 text-right" id="bgOpacityVal">100%</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center">
+              <label id="lblTextType" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Text Color</label>
+              <div class="flex gap-1 text-[11px] font-semibold">
+                <button id="btnTextSolid" class="px-2 py-0.5 rounded bg-sky-600 text-white">Solid</button>
+                <button id="btnTextGrad" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Gradient</button>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="color" id="textColor1" value="#000000" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent shrink-0" />
+              <input type="color" id="textColor2" value="#3b82f6" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent hidden shrink-0" />
+              <div id="textAngleContainer" class="flex-1 items-center gap-2 hidden">
+                <input type="range" id="textAngle" min="0" max="360" value="90" class="w-full accent-sky-500" />
+                <span class="text-xs text-slate-400 font-bold w-7" id="textAngleVal">90°</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-[11px] font-semibold text-slate-400 w-16" id="lblTextOpacity">Opacity</span>
+              <input type="range" id="textOpacity" min="0" max="100" value="100" class="flex-1 accent-sky-500" />
+              <span class="text-xs text-slate-400 font-bold w-9 text-right" id="textOpacityVal">100%</span>
+            </div>
+          </div>
+          <div id="borderColorSection" class="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center">
+              <label id="lblBorderType" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Border Color</label>
+              <div class="flex gap-1 text-[11px] font-semibold">
+                <button id="btnBorderSolid" class="px-2 py-0.5 rounded bg-sky-600 text-white">Solid</button>
+                <button id="btnBorderGrad" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Gradient</button>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="color" id="borderColor1" value="#000000" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent shrink-0" />
+              <input type="color" id="borderColor2" value="#38bdf8" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent hidden shrink-0" />
+              <div id="borderAngleContainer" class="flex-1 items-center gap-2 hidden">
+                <input type="range" id="borderAngle" min="0" max="360" value="90" class="w-full accent-sky-500" />
+                <span class="text-xs text-slate-400 font-bold w-7" id="borderAngleVal">90°</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-[11px] font-semibold text-slate-400 w-16" id="lblBorderOpacity">Opacity</span>
+              <input type="range" id="borderOpacity" min="0" max="100" value="100" class="flex-1 accent-sky-500" />
+              <span class="text-xs text-slate-400 font-bold w-9 text-right" id="borderOpacityVal">100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Typography -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab5">
+          <span class="flex items-center gap-2"><i data-lucide="type" class="w-4 h-4 text-sky-500"></i><span id="txtTabTypography">Typography</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab5" class="accordion-content p-4 space-y-3 bg-white dark:bg-slate-900 hidden">
+          <div>
+            <label id="lblStyle" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Style</label>
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <button id="btnBold" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400">Bold</button>
+              <button id="btnItalic" class="py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400">Italic</button>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+              <span id="lblFontSize">Font Size</span><span><span id="sizeMaxVal">130</span> <span id="lblMax">max</span> · <span id="sizeVal">130</span> <span id="lblFit">fit</span></span>
+            </div>
+            <input type="range" id="sliderSize" min="20" max="250" value="130" class="w-full accent-sky-500" />
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label id="lblFontFamily" class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Font Family</label>
+              <span id="fontVectorStatus" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"></span>
+            </div>
+            <select id="fontSelect" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none mb-2">
+              <optgroup label="Cross-Platform Web Fonts">
+                <option value="'Arimo', Arial, sans-serif" selected>Arimo</option>
+                <option value="'Oswald', sans-serif">Oswald</option>
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+                <option value="'Gelasio', serif">Gelasio</option>
+                <option value="'Fira Sans', sans-serif">Fira Sans</option>
+                <option value="'Courier Prime', monospace">Courier Prime</option>
+                <option value="'Anton', sans-serif">Anton</option>
+              </optgroup>
+              <optgroup label="Custom / Installed" id="customFontsGroup"></optgroup>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btnLoadFonts" class="py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800">Scan PC</button>
+              <label class="py-1.5 border border-sky-500/50 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 rounded-lg text-xs font-semibold text-center cursor-pointer hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors">
+                <span id="lblUploadFont">Upload Font</span>
+                <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff" class="hidden" />
+              </label>
+            </div>
+            <p id="fontUploadStatus" class="text-[10px] text-slate-400 mt-1 truncate"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Shadows -->
+      <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <button class="accordion-trigger w-full px-4 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60" data-target="tab6">
+          <span class="flex items-center gap-2"><i data-lucide="box" class="w-4 h-4 text-sky-500"></i><span id="txtTabShadow">Shadows</span></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+        </button>
+        <div id="tab6" class="accordion-content p-4 space-y-4 bg-white dark:bg-slate-900 hidden">
+          <div id="shapeShadowGroup" class="space-y-2">
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" id="shapeShadowEnabled" class="rounded accent-sky-500" />
+              <span id="lblEnableShapeShadow">Shape Shadow</span>
+            </label>
+            <div id="shapeShadowControls" class="space-y-2.5 hidden pt-1">
+              <div class="flex justify-between items-center">
+                <label id="lblShapeShadowType" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Shadow Fill</label>
+                <div class="flex gap-1 text-[11px] font-semibold">
+                  <button id="btnShapeShadowSolid" class="px-2 py-0.5 rounded bg-sky-600 text-white">Solid</button>
+                  <button id="btnShapeShadowGrad" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Gradient</button>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="color" id="shapeShadowColor1" value="#000000" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent shrink-0" />
+                <input type="color" id="shapeShadowColor2" value="#3b82f6" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent hidden shrink-0" />
+                <div id="shapeShadowAngleContainer" class="flex-1 items-center gap-2 hidden">
+                  <input type="range" id="shapeShadowGradAngle" min="0" max="360" value="90" class="w-full accent-sky-500" />
+                  <span class="text-xs text-slate-400 font-bold w-7" id="shapeShadowGradAngleVal">90°</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-slate-400 w-16" id="lblShapeShadowOpacity">Opacity</span>
+                <input type="range" id="shapeShadowOpacity" min="0" max="100" value="50" class="flex-1 accent-sky-500" />
+                <span class="text-xs text-slate-400 font-bold w-9 text-right" id="shapeShadowOpacityVal">50%</span>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblShapeShadowDistance">Distance</span><span><span id="shapeShadowDistVal">12</span>px</span>
+                </div>
+                <input type="range" id="shapeShadowDistance" min="0" max="60" value="12" class="w-full accent-sky-500" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblShapeShadowBlur">Blur</span><span><span id="shapeShadowBlurVal">16</span>px</span>
+                </div>
+                <input type="range" id="shapeShadowBlur" min="0" max="50" value="16" class="w-full accent-sky-500" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblShapeShadowAngle">Angle</span><span><span id="shapeShadowAngleVal">135</span>°</span>
+                </div>
+                <input type="range" id="shapeShadowAngle" min="0" max="360" value="135" class="w-full accent-sky-500" />
+              </div>
+            </div>
+          </div>
+          <div class="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" id="textShadowEnabled" class="rounded accent-sky-500" />
+              <span id="lblEnableTextShadow">Text Shadow</span>
+            </label>
+            <div id="textShadowControls" class="space-y-2.5 hidden pt-1">
+              <div class="flex justify-between items-center">
+                <label id="lblTextShadowType" class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Shadow Fill</label>
+                <div class="flex gap-1 text-[11px] font-semibold">
+                  <button id="btnTextShadowSolid" class="px-2 py-0.5 rounded bg-sky-600 text-white">Solid</button>
+                  <button id="btnTextShadowGrad" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Gradient</button>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="color" id="textShadowColor1" value="#000000" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent shrink-0" />
+                <input type="color" id="textShadowColor2" value="#ef4444" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent hidden shrink-0" />
+                <div id="textShadowAngleContainer" class="flex-1 items-center gap-2 hidden">
+                  <input type="range" id="textShadowGradAngle" min="0" max="360" value="90" class="w-full accent-sky-500" />
+                  <span class="text-xs text-slate-400 font-bold w-7" id="textShadowGradAngleVal">90°</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-slate-400 w-16" id="lblTextShadowOpacity">Opacity</span>
+                <input type="range" id="textShadowOpacity" min="0" max="100" value="50" class="flex-1 accent-sky-500" />
+                <span class="text-xs text-slate-400 font-bold w-9 text-right" id="textShadowOpacityVal">50%</span>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblTextShadowDistance">Distance</span><span><span id="textShadowDistVal">8</span>px</span>
+                </div>
+                <input type="range" id="textShadowDistance" min="0" max="60" value="8" class="w-full accent-sky-500" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblTextShadowBlur">Blur</span><span><span id="textShadowBlurVal">10</span>px</span>
+                </div>
+                <input type="range" id="textShadowBlur" min="0" max="50" value="10" class="w-full accent-sky-500" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblTextShadowAngle">Angle</span><span><span id="textShadowAngleVal">135</span>°</span>
+                </div>
+                <input type="range" id="textShadowAngle" min="0" max="360" value="135" class="w-full accent-sky-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2 shrink-0">
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btnDownloadPNG" class="py-2 px-3 bg-sky-600 text-white rounded-lg text-xs font-bold shadow hover:bg-sky-700">PNG</button>
+        <button id="btnDownloadSVG" class="py-2 px-3 border border-sky-600 text-sky-600 dark:text-sky-400 rounded-lg text-xs font-bold hover:bg-sky-50 dark:hover:bg-slate-800">SVG</button>
+      </div>
+      <button id="btnPrint" class="w-full py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800">Print / PDF</button>
+      <button id="btnReset" class="w-full py-1.5 text-xs text-rose-500 hover:text-rose-700 font-bold">Reset (R)</button>
+    </div>
+  </aside>
+
+  <main id="previewViewport" class="preview-area flex-1 relative flex items-center justify-center p-2 sm:p-4 lg:p-8 overflow-hidden bg-slate-200/70 dark:bg-slate-800">
+    <div class="top-controls absolute top-4 right-6 z-30 hidden lg:flex items-center gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 shadow-sm no-print">
+      <button id="btnOpenHelp" title="Help & Credits" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center">
+        <i data-lucide="info" class="w-4 h-4"></i>
+      </button>
+      <div class="w-px h-4 bg-slate-200 dark:bg-slate-800"></div>
+      <button id="btnUndo" title="Undo (Ctrl+Z)" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center" disabled>
+        <i data-lucide="undo-2" class="w-4 h-4"></i>
+      </button>
+      <button id="btnRedo" title="Redo (Ctrl+Shift+Z)" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center" disabled>
+        <i data-lucide="redo-2" class="w-4 h-4"></i>
+      </button>
+      <div class="w-px h-4 bg-slate-200 dark:bg-slate-800"></div>
+      <button id="btnThemeToggle" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center">
+        <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+        <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+      </button>
+      <div class="w-px h-4 bg-slate-200 dark:bg-slate-800"></div>
+      <div class="flex items-center gap-1.5 leading-none">
+        <span class="text-xs font-bold text-slate-400 select-none" id="lblLang">Language:</span>
+        <select id="selectLang" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer py-0.5">
+          <option value="en" selected class="bg-white dark:bg-slate-900">English</option>
+          <option value="es" class="bg-white dark:bg-slate-900">Español</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="w-full h-full flex items-center justify-center shrink-0 pointer-events-none overflow-hidden">
+      <div id="artboardWrapper" class="artboard-container origin-center pointer-events-auto flex items-center justify-center shrink-0 relative">
+        <div id="gridContainer"></div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg px-2 py-1 gap-1 text-xs font-bold no-print">
+      <button id="btnZoomOut" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300">
+        <i data-lucide="minus" class="w-4 h-4"></i>
+      </button>
+      <button id="btnZoomReset" class="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-200 min-w-[52px] text-center">
+        <span id="zoomPercentText">100%</span>
+      </button>
+      <button id="btnZoomIn" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </main>
+
+  <!-- Help & Credits Modal -->
+  <div id="helpModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="info" class="w-5 h-5 text-sky-500"></i>
+          <h2 id="helpModalTitle" class="font-extrabold text-base text-slate-900 dark:text-white">About & Help</h2>
+        </div>
+        <button id="btnCloseHelp" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="helpScrollBody" class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+
+        <div class="text-center space-y-3">
+          <div class="flex justify-center">
+            <svg class="brand-lockup-light h-14" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+              <circle cx="66.04" cy="66.04" r="64.04" fill="#fff" stroke="#000" stroke-width="4"/>
+              <path fill="#000" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+              <g fill="#231f20">
+                <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+                <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+                <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+                <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+                <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+                <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+                <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+              </g>
+            </svg>
+            <svg class="brand-lockup-dark h-14" viewBox="0 0 401.7 132.08" xmlns="http://www.w3.org/2000/svg" aria-label="Circole">
+              <circle cx="66.04" cy="66.04" r="64.04" fill="none" stroke="#fff" stroke-width="4"/>
+              <path fill="#fff" d="M67.18,79.62c4.72,0,8.27-2.34,10.64-7.01l3.73,1.86c-1.39,2.9-3.34,5.11-5.85,6.62s-5.42,2.27-8.74,2.27-6.34-.71-8.8-2.13-4.34-3.44-5.65-6.06-1.97-5.72-1.97-9.29.65-6.66,1.96-9.23c1.31-2.57,3.19-4.54,5.64-5.91,2.46-1.37,5.39-2.06,8.8-2.06,3.59,0,6.58.7,8.99,2.11,2.41,1.4,4.18,3.48,5.31,6.24l-4.33,1.44c-.78-1.96-2.04-3.46-3.77-4.49s-3.78-1.56-6.16-1.56c-3.73,0-6.63,1.2-8.7,3.6-2.07,2.4-3.11,5.69-3.11,9.86,0,2.74.49,5.15,1.47,7.21s2.37,3.67,4.16,4.81,3.92,1.71,6.37,1.71h.01Z"/>
+              <g fill="#fff">
+                <path d="M176.11,90.53c8.12,0,14.22-4.02,18.31-12.06l6.42,3.21c-2.39,4.99-5.74,8.79-10.06,11.4-4.32,2.61-9.33,3.91-15.04,3.91s-10.92-1.22-15.14-3.66-7.47-5.92-9.73-10.43-3.4-9.84-3.4-15.99,1.12-11.47,3.37-15.88c2.25-4.42,5.49-7.8,9.71-10.16s9.27-3.54,15.14-3.54c6.17,0,11.33,1.21,15.47,3.62s7.19,5.99,9.14,10.74l-7.45,2.47c-1.34-3.37-3.5-5.95-6.48-7.74-2.98-1.78-6.51-2.67-10.6-2.67-6.42,0-11.41,2.06-14.98,6.19-3.57,4.13-5.35,9.79-5.35,16.98,0,4.72.84,8.85,2.53,12.41s4.07,6.31,7.16,8.27c3.09,1.96,6.74,2.94,10.97,2.94h0Z"/>
+                <path d="M217.1,35.09v7.08h-7.41v-7.08s7.41,0,7.41,0ZM217.1,51.64v44.53h-7.41v-44.53h7.41Z"/>
+                <path d="M236.03,72.95v23.21h-7.41v-34.16c0-1.56-.02-3.21-.06-4.94s-.1-3.54-.18-5.43h6.99c.05,1.26.1,2.4.14,3.42.04,1.02.08,1.9.1,2.65.03.75.05,1.39.06,1.89,0,.51.02.88.02,1.13h.16c.82-2.69,1.73-4.77,2.72-6.25.96-1.37,2.06-2.32,3.29-2.86s2.76-.8,4.57-.8c1.01,0,2.02.14,3,.41v6.79c-.93-.27-2.25-.41-3.95-.41-3.07,0-5.42,1.32-7.04,3.97s-2.43,6.44-2.43,11.38h.02Z"/>
+                <path d="M273.6,96.99c-6.23,0-10.98-1.97-14.26-5.91s-4.92-9.68-4.92-17.22,1.65-13.2,4.94-17.14c3.29-3.94,8.01-5.91,14.16-5.91,4.55,0,8.33,1.18,11.34,3.54,3,2.36,4.89,5.61,5.66,9.75l-7.61.58c-.38-2.47-1.36-4.43-2.92-5.88-1.56-1.45-3.79-2.18-6.67-2.18-3.92,0-6.76,1.3-8.52,3.91s-2.63,7-2.63,13.17.93,10.32,2.8,13.17,4.68,4.28,8.44,4.28c2.63,0,4.83-.71,6.6-2.14,1.77-1.43,2.86-3.62,3.27-6.58l7.49.49c-.39,2.85-1.34,5.34-2.86,7.45s-3.5,3.75-5.93,4.9-5.22,1.73-8.37,1.73h0Z"/>
+                <path d="M336.31,73.86c0,7.79-1.72,13.59-5.14,17.41-3.43,3.81-8.41,5.72-14.94,5.72s-11.41-1.98-14.73-5.95c-3.32-3.96-4.98-9.69-4.98-17.18s1.67-13.44,5-17.28,8.32-5.76,14.96-5.76,11.81,1.87,15.02,5.62c3.21,3.74,4.82,9.55,4.82,17.43h0ZM328.54,73.86c0-6.15-.91-10.61-2.74-13.4-1.82-2.78-4.89-4.18-9.2-4.18s-7.47,1.42-9.4,4.26c-1.93,2.84-2.9,7.28-2.9,13.31s.95,10.28,2.86,13.23c1.91,2.95,4.9,4.42,8.99,4.42,4.44,0,7.62-1.43,9.53-4.28s2.86-7.31,2.86-13.37h0Z"/>
+                <path d="M352.94,35.09v61.07h-7.41v-61.07s7.41,0,7.41,0Z"/>
+                <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.6</h2>
+          </div>
+          <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
+        </div>
+
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+          <h4 id="helpHeaderCredits" class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Creators & Collaborators</h4>
+          <div class="text-center space-y-1">
+            <p><strong id="creditDevs" class="text-slate-900 dark:text-white">Lead Developers:</strong> Agustin Albrieu Livingston &amp; Ivan Albrieu Livingston</p>
+            <p><strong id="creditAI" class="text-slate-900 dark:text-white">AI Engineering Support:</strong> Gemini &amp; DeepSeek</p>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+          <h4 id="helpHeaderShortcuts" class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Keyboard Shortcuts</h4>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">↑ / ↓</kbd> : Increment / Decrement</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">← / →</kbd> : Jump step navigation</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">PgUp / PgDn</kbd> : Cycle sheet cells</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Ctrl + Arrows</kbd> : Grid navigation</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Ctrl + Z</kbd> : Undo</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Ctrl + Y</kbd> : Redo</div>
+            <div><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">R</kbd> : Reset workspace</div>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+          <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">License</h4>
+          <p class="mb-2" id="helpLicenseText">Copyright &copy; 2026 Agustin Albrieu Livingston &amp; Ivan Albrieu Livingston</p>
+          <p class="mb-2">This program is free software: you can redistribute it and/or modify it under the terms of the <strong>GNU General Public License</strong> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+          <p class="mb-2">This program is distributed in the hope that it will be useful, but <strong>WITHOUT ANY WARRANTY</strong>; without even the implied warranty of <strong>MERCHANTABILITY</strong> or <strong>FITNESS FOR A PARTICULAR PURPOSE</strong>. See the GNU General Public License for more details.</p>
+          <p>You should have received a copy of the GNU General Public License along with this program. If not, see
+          <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer" class="text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300">https://www.gnu.org/licenses/gpl-3.0.html</a>.</p>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end shrink-0">
+        <button id="btnCloseHelpModal" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-colors">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const translations = {
+      en: {
+        tabNumber: "Number & Label", tabShape: "Shape & Frame", tabCanvas: "Paper Mode",
+        tabColors: "Colors", tabTypography: "Typography", tabShadow: "Shadows",
+        langText: "Language:", numberLabel: "Number (↑↓ ±1, ←→ Jump)",
+        errDigits: "Only digits (0-9) are allowed", errEmpty: "Label cannot be completely empty",
+        affixLabel: "Route Prefix / Suffix (e.g. A, Ex)", prefixPlaceholder: "Prefix (Line)", suffixPlaceholder: "Suffix (A)",
+        jumpLabel: "Jump Amount (← / →)", frameLabel: "Shape Frame", showFrame: "Show Frame", noFrame: "No Frame",
+        baseLabel: "Shape Base", round: "Round", box: "Box", width: "Width", height: "Height", roundness: "Corner Roundness",
+        canvasMode: "Canvas Sheet", fitContent: "Single Label", paperSheet: "Paper Sheet",
+        paperSize: "Paper Size", orientation: "Orientation", portrait: "Portrait", landscape: "Landscape",
+        gridCols: "Columns", gridRows: "Rows",
+        bgFill: "Label Background", textFill: "Text Color", borderFill: "Border Color", opacity: "Opacity",
+        solid: "Solid", gradient: "Gradient", style: "Style", bold: "Bold", italic: "Italic",
+        fontSize: "Font Size", fontFamily: "Font Family", loadFonts: "Scan PC", uploadFont: "Upload Font",
+        enableShapeShadow: "Shape Shadow", enableTextShadow: "Text Shadow", shadowFill: "Shadow Fill",
+        distance: "Distance", blur: "Blur", angle: "Angle",
+        downloadPNG: "Download PNG", downloadSVG: "Download SVG", printPDF: "Print / PDF", reset: "Reset (R)",
+        cellHintPrefix: "Editing cell", navHint: "PgUp / PgDn to move between cells. Ctrl+Arrows to move in the grid.",
+        errInvalidFile: "Invalid settings file format.",
+        errFontLoad: "Could not load font file. Please provide a valid TTF, OTF, or WOFF file (WOFF2 is not supported).",
+        errFontScanUnsupported: "Font scanning is only supported on Chromium-based desktop browsers (Chrome, Edge, Brave, Opera). It is not available on Firefox, Safari, or any mobile browser.",
+        btnUnsupported: "Unsupported", btnScanning: "Scanning...", btnNoFonts: "No Fonts Found",
+        btnLoadedPrefix: "Loaded", activeFontPrefix: "Active:",
+        loadLabel: "Load", saveLabel: "Save", titleLoad: "Load Settings", titleSave: "Save Settings",
+        titleUndo: "Undo (Ctrl+Z)", titleRedo: "Redo (Ctrl+Shift+Z)",
+        maxLabel: "max", fitLabel: "fit",
+        paperLetter: "US Letter",
+        helpTitle: "About & Help",
+        helpAppDesc: "A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.",
+        helpCreators: "Creators & Collaborators",
+        helpDevs: "Lead Developers:", helpAI: "AI Engineering Support:",
+        helpShortcuts: "Keyboard Shortcuts", helpClose: "Close",
+		vecPaths: "✓ Vector",
+        vecBoldNA: "✓ Vector (bold not available)",
+        vecItalicNA: "✓ Vector (italic not available)",
+        vecBoldItalicNA: "✓ Vector (bold, italic not available)",
+        vecRomanOnly: "✓ Vector (roman only)",
+        vecVariable: "✓ Vector (variable — faux styles)",
+        liveText: "⚠ Live Text"
+      },
+      es: {
+        tabNumber: "Número y Etiqueta", tabShape: "Figura y Marco", tabCanvas: "Modo Papel",
+        tabColors: "Colores", tabTypography: "Tipografía", tabShadow: "Sombras",
+        langText: "Idioma:", numberLabel: "Número (↑↓ ±1, ←→ Salto)",
+        errDigits: "Solo se permiten dígitos (0-9)", errEmpty: "La etiqueta no puede estar vacía",
+        affixLabel: "Prefijo / Sufijo de Línea (ej. A, Ex)", prefixPlaceholder: "Prefijo (Línea)", suffixPlaceholder: "Sufijo (A)",
+        jumpLabel: "Cantidad de Salto (← / →)", frameLabel: "Marco de Figura", showFrame: "Con Marco", noFrame: "Sin Marco",
+        baseLabel: "Figura Base", round: "Redondo", box: "Caja", width: "Ancho", height: "Alto", roundness: "Redondeo de Bordes",
+        canvasMode: "Hoja de Mesa", fitContent: "Etiqueta Única", paperSheet: "Hoja de Papel",
+        paperSize: "Tamaño de Papel", orientation: "Orientación", portrait: "Vertical", landscape: "Horizontal",
+        gridCols: "Columnas", gridRows: "Filas",
+        bgFill: "Fondo de Etiqueta", textFill: "Color de Texto", borderFill: "Color de Borde", opacity: "Opacidad",
+        solid: "Sólido", gradient: "Degradado", style: "Estilo", bold: "Negrita", italic: "Cursiva",
+        fontSize: "Tamaño de Fuente", fontFamily: "Tipo de Fuente", loadFonts: "Escanear PC", uploadFont: "Subir Fuente",
+        enableShapeShadow: "Sombra de Figura", enableTextShadow: "Sombra de Texto", shadowFill: "Relleno de Sombra",
+        distance: "Distancia", blur: "Desenfoque", angle: "Ángulo",
+        downloadPNG: "Descargar PNG", downloadSVG: "Descargar SVG", printPDF: "Imprimir / PDF", reset: "Reiniciar (R)",
+        cellHintPrefix: "Editando celda", navHint: "PgUp / PgDn para moverse entre celdas. Ctrl+Flechas para moverse en la grilla.",
+        errInvalidFile: "Formato de archivo de configuración inválido.",
+        errFontLoad: "No se pudo cargar la fuente. Proporciona un archivo TTF, OTF o WOFF válido (WOFF2 no está soportado).",
+        errFontScanUnsupported: "El escaneo de fuentes solo funciona en navegadores de escritorio basados en Chromium (Chrome, Edge, Brave, Opera). No está disponible en Firefox, Safari ni en ningún navegador móvil.",
+        btnUnsupported: "No soportado", btnScanning: "Escaneando...", btnNoFonts: "Sin fuentes",
+        btnLoadedPrefix: "Cargadas", activeFontPrefix: "Activa:",
+        loadLabel: "Cargar", saveLabel: "Guardar", titleLoad: "Cargar configuración", titleSave: "Guardar configuración",
+        titleUndo: "Deshacer (Ctrl+Z)", titleRedo: "Rehacer (Ctrl+Shift+Z)",
+        maxLabel: "máx", fitLabel: "ajust",
+        paperLetter: "Carta (EE.UU.)",
+        helpTitle: "Acerca de y Ayuda",
+        helpAppDesc: "Un generador de etiquetas por lotes basado en web para diseños precisos, degradados personalizados, sombras e impresión de múltiples celdas.",
+        helpCreators: "Creadores y Colaboradores",
+        helpDevs: "Desarrolladores Principales:", helpAI: "Soporte de Ingeniería IA:",
+        helpShortcuts: "Atajos de Teclado", helpClose: "Cerrar",
+		vecPaths: "✓ Vector",
+        vecBoldNA: "✓ Vector (negrita no disponible)",
+        vecItalicNA: "✓ Vector (cursiva no disponible)",
+        vecBoldItalicNA: "✓ Vector (negrita, cursiva no disponible)",
+        vecRomanOnly: "✓ Vector (solo romana)",
+        vecVariable: "✓ Vector (variable — estilos simulados)",
+        liveText: "⚠ Texto en vivo"
+      }
+    };
+
+    let currentLang = 'en';
+    // Structure: { [familyName]: { normal?: ArrayBuffer, bold?: ArrayBuffer, italic?: ArrayBuffer, boldItalic?: ArrayBuffer } }
+    const _uploadedFontBuffers = {};
+
+    function _detectFontVariant(font) {
+      const fsSel = (font && font.tables && font.tables.os2 && font.tables.os2.fsSelection) || 0;
+      const macStyle = (font && font.tables && font.tables.head && font.tables.head.macStyle) || 0;
+      const isItalic = ((fsSel & 0x01) !== 0) || ((macStyle & 0x02) !== 0);
+      const isBold   = ((fsSel & 0x20) !== 0) || ((macStyle & 0x01) !== 0);
+      if (isBold && isItalic) return 'boldItalic';
+      if (isBold)             return 'bold';
+      if (isItalic)           return 'italic';
+      return 'normal';
+    }
+
+    function _classifyVariant(faceStyle, font) {
+      const s = (faceStyle || '').toLowerCase();
+      const isB = s.includes('bold') || s.includes('black') || s.includes('heavy') || s.includes('700') || s.includes('800') || s.includes('900');
+      const isI = s.includes('italic') || s.includes('oblique');
+      if (isB && isI) return 'boldItalic';
+      if (isB)         return 'bold';
+      if (isI)         return 'italic';
+      return _detectFontVariant(font);
+    }
+
+    function _detectFontFamily(font, fallbackName) {
+      try {
+        if (font && font.names && font.names.fontFamily) {
+          const n = font.names.fontFamily;
+          if (typeof n === 'string') return n;
+          if (n.en) return n.en;
+          const first = Object.values(n)[0];
+          if (typeof first === 'string') return first;
+        }
+        if (font && font.tables && font.tables.name && Array.isArray(font.tables.name.names)) {
+          const rec = font.tables.name.names.find(x => x.nameID === 1);
+          if (rec && rec.value) return rec.value;
+        }
+      } catch (_) {}
+      return fallbackName || 'UploadedFont';
+    }
+
+    let showBorder = true;
+    let isRound = true;
+    let isBold = false;
+    let isItalic = false;
+    let isPaperMode = false;
+    let paperFormat = 'a4';
+    let isLandscape = false;
+    let gridCols = 1;
+    let gridRows = 1;
+    let activeCellIndex = 0;
+    let labelValues = ['0'];
+    let lastPaperCellIndex = 0;
+    let noActiveCell = false;
+
+    let currentZoom = 1.0;
+    let preNoFrameWidth = 340;
+    let preNoFrameHeight = 340;
+
+    let bgIsGradient = false;
+    let textIsGradient = false;
+    let borderIsGradient = false;
+    let shapeShadowIsGradient = false;
+    let textShadowIsGradient = false;
+
+    const FONT_SIZE_MAX_BORDER = 250;
+    const FONT_SIZE_MAX_NO_BORDER = 1000;
+
+    const previewViewport = document.getElementById('previewViewport');
+    const artboardWrapper = document.getElementById('artboardWrapper');
+    const gridContainer = document.getElementById('gridContainer');
+
+    const inputNum = document.getElementById('inputNum');
+    const inputPrefix = document.getElementById('inputPrefix');
+    const inputSuffix = document.getElementById('inputSuffix');
+    const jumpStepSelect = document.getElementById('jumpStepSelect');
+    const errorMsg = document.getElementById('errorMsg');
+    const cellHint = document.getElementById('cellHint');
+    const cellHintIdx = document.getElementById('cellHintIdx');
+
+    const btnBorderOn = document.getElementById('btnBorderOn');
+    const btnBorderOff = document.getElementById('btnBorderOff');
+    const btnShapeCircle = document.getElementById('btnShapeCircle');
+    const btnShapeSquare = document.getElementById('btnShapeSquare');
+    const roundnessContainer = document.getElementById('roundnessContainer');
+
+    const sliderWidth = document.getElementById('sliderWidth');
+    const sliderHeight = document.getElementById('sliderHeight');
+    const sliderRoundness = document.getElementById('sliderRoundness');
+    const widthVal = document.getElementById('widthVal');
+    const heightVal = document.getElementById('heightVal');
+    const roundVal = document.getElementById('roundVal');
+
+    const btnModeFit = document.getElementById('btnModeFit');
+    const btnModePaper = document.getElementById('btnModePaper');
+    const paperSettingsContainer = document.getElementById('paperSettingsContainer');
+    const btnPaperA4 = document.getElementById('btnPaperA4');
+    const btnPaperLetter = document.getElementById('btnPaperLetter');
+    const btnOrientPortrait = document.getElementById('btnOrientPortrait');
+    const btnOrientLandscape = document.getElementById('btnOrientLandscape');
+    const inputGridCols = document.getElementById('inputGridCols');
+    const inputGridRows = document.getElementById('inputGridRows');
+
+    const btnBgSolid = document.getElementById('btnBgSolid');
+    const btnBgGrad = document.getElementById('btnBgGrad');
+    const bgColor1 = document.getElementById('bgColor1');
+    const bgColor2 = document.getElementById('bgColor2');
+    const bgAngleContainer = document.getElementById('bgAngleContainer');
+    const bgAngle = document.getElementById('bgAngle');
+    const bgAngleVal = document.getElementById('bgAngleVal');
+    const bgOpacity = document.getElementById('bgOpacity');
+    const bgOpacityVal = document.getElementById('bgOpacityVal');
+
+    const btnTextSolid = document.getElementById('btnTextSolid');
+    const btnTextGrad = document.getElementById('btnTextGrad');
+    const textColor1 = document.getElementById('textColor1');
+    const textColor2 = document.getElementById('textColor2');
+    const textAngleContainer = document.getElementById('textAngleContainer');
+    const textAngle = document.getElementById('textAngle');
+    const textAngleVal = document.getElementById('textAngleVal');
+    const textOpacity = document.getElementById('textOpacity');
+    const textOpacityVal = document.getElementById('textOpacityVal');
+
+    const borderColorSection = document.getElementById('borderColorSection');
+    const btnBorderSolid = document.getElementById('btnBorderSolid');
+    const btnBorderGrad = document.getElementById('btnBorderGrad');
+    const borderColor1 = document.getElementById('borderColor1');
+    const borderColor2 = document.getElementById('borderColor2');
+    const borderAngleContainer = document.getElementById('borderAngleContainer');
+    const borderAngle = document.getElementById('borderAngle');
+    const borderAngleVal = document.getElementById('borderAngleVal');
+    const borderOpacity = document.getElementById('borderOpacity');
+    const borderOpacityVal = document.getElementById('borderOpacityVal');
+
+    const btnBold = document.getElementById('btnBold');
+    const btnItalic = document.getElementById('btnItalic');
+    const sliderSize = document.getElementById('sliderSize');
+    const sizeVal = document.getElementById('sizeVal');
+    const sizeMaxVal = document.getElementById('sizeMaxVal');
+    const fontSelect = document.getElementById('fontSelect');
+	const fontVectorStatus = document.getElementById('fontVectorStatus');
+    const btnLoadFonts = document.getElementById('btnLoadFonts');
+    const fontFileInput = document.getElementById('fontFileInput');
+    const fontUploadStatus = document.getElementById('fontUploadStatus');
+    const customFontsGroup = document.getElementById('customFontsGroup');
+
+    const shapeShadowEnabled = document.getElementById('shapeShadowEnabled');
+    const shapeShadowControls = document.getElementById('shapeShadowControls');
+    const btnShapeShadowSolid = document.getElementById('btnShapeShadowSolid');
+    const btnShapeShadowGrad = document.getElementById('btnShapeShadowGrad');
+    const shapeShadowColor1 = document.getElementById('shapeShadowColor1');
+    const shapeShadowColor2 = document.getElementById('shapeShadowColor2');
+    const shapeShadowAngleContainer = document.getElementById('shapeShadowAngleContainer');
+    const shapeShadowGradAngle = document.getElementById('shapeShadowGradAngle');
+    const shapeShadowGradAngleVal = document.getElementById('shapeShadowGradAngleVal');
+    const shapeShadowOpacity = document.getElementById('shapeShadowOpacity');
+    const shapeShadowOpacityVal = document.getElementById('shapeShadowOpacityVal');
+    const shapeShadowDistance = document.getElementById('shapeShadowDistance');
+    const shapeShadowDistVal = document.getElementById('shapeShadowDistVal');
+    const shapeShadowBlur = document.getElementById('shapeShadowBlur');
+    const shapeShadowBlurVal = document.getElementById('shapeShadowBlurVal');
+    const shapeShadowAngle = document.getElementById('shapeShadowAngle');
+    const shapeShadowAngleVal = document.getElementById('shapeShadowAngleVal');
+
+    const textShadowEnabled = document.getElementById('textShadowEnabled');
+    const textShadowControls = document.getElementById('textShadowControls');
+    const btnTextShadowSolid = document.getElementById('btnTextShadowSolid');
+    const btnTextShadowGrad = document.getElementById('btnTextShadowGrad');
+    const textShadowColor1 = document.getElementById('textShadowColor1');
+    const textShadowColor2 = document.getElementById('textShadowColor2');
+    const textShadowAngleContainer = document.getElementById('textShadowAngleContainer');
+    const textShadowGradAngle = document.getElementById('textShadowGradAngle');
+    const textShadowGradAngleVal = document.getElementById('textShadowGradAngleVal');
+    const textShadowOpacity = document.getElementById('textShadowOpacity');
+    const textShadowOpacityVal = document.getElementById('textShadowOpacityVal');
+    const textShadowDistance = document.getElementById('textShadowDistance');
+    const textShadowDistVal = document.getElementById('textShadowDistVal');
+    const textShadowBlur = document.getElementById('textShadowBlur');
+    const textShadowBlurVal = document.getElementById('textShadowBlurVal');
+    const textShadowAngle = document.getElementById('textShadowAngle');
+    const textShadowAngleVal = document.getElementById('textShadowAngleVal');
+
+    const btnZoomOut = document.getElementById('btnZoomOut');
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomReset = document.getElementById('btnZoomReset');
+    const zoomPercentText = document.getElementById('zoomPercentText');
+
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    const btnCloseSidebar = document.getElementById('btnCloseSidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const mainSidebar = document.getElementById('mainSidebar');
+    const btnMobileTheme = document.getElementById('btnMobileTheme');
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    const selectLang = document.getElementById('selectLang');
+    const selectLangMobile = document.getElementById('selectLangMobile');
+
+    const btnSaveSettings = document.getElementById('btnSaveSettings');
+    const btnLoadSettings = document.getElementById('btnLoadSettings');
+    const settingsFileInput = document.getElementById('settingsFileInput');
+
+    const btnUndo = document.getElementById('btnUndo');
+    const btnRedo = document.getElementById('btnRedo');
+
+    const btnOpenHelp = document.getElementById('btnOpenHelp');
+    const btnMobileHelp = document.getElementById('btnMobileHelp');
+    const helpModal = document.getElementById('helpModal');
+    const btnCloseHelp = document.getElementById('btnCloseHelp');
+    const btnCloseHelpModal = document.getElementById('btnCloseHelpModal');
+    const helpScrollBody = document.getElementById('helpScrollBody');
+
+    function openHelpModal() {
+      helpModal.classList.remove('hidden');
+      if (helpScrollBody) helpScrollBody.scrollTop = 0;
+    }
+    function closeHelpModal() { helpModal.classList.add('hidden'); }
+    btnOpenHelp.addEventListener('click', openHelpModal);
+    if (btnMobileHelp) btnMobileHelp.addEventListener('click', openHelpModal);
+    btnCloseHelp.addEventListener('click', closeHelpModal);
+    btnCloseHelpModal.addEventListener('click', closeHelpModal);
+    helpModal.addEventListener('click', (e) => { if (e.target === helpModal) closeHelpModal(); });
+
+    function getPaperSize() {
+      if (paperFormat === 'letter') return isLandscape ? { w: 1056, h: 816 } : { w: 816, h: 1056 };
+      return isLandscape ? { w: 1123, h: 794 } : { w: 794, h: 1123 };
+    }
+    function totalCells() { return isPaperMode ? Math.max(1, gridCols * gridRows) : 1; }
+    function ensureCellCapacity() {
+      const target = totalCells();
+      while (labelValues.length < target) labelValues.push('0');
+      if (activeCellIndex >= target) activeCellIndex = 0;
+    }
+    function getActiveLabel() { return String(labelValues[activeCellIndex] ?? '0'); }
+    function constructLabelFromNum(num) { return `${inputPrefix.value}${num}${inputSuffix.value}`; }
+    function constructLabel() { return constructLabelFromNum(getActiveLabel()); }
+    function longestSheetLabel() {
+      let longest = '';
+      const n = totalCells();
+      for (let i = 0; i < n; i++) {
+        const t = constructLabelFromNum(labelValues[i] ?? '0');
+        if (t.length > longest.length) longest = t;
+      }
+      return longest || constructLabelFromNum('0');
+    }
+    function computeShapeSize(w, h, cellW, cellH) {
+      const innerPad = 0.86;
+      const maxW = Math.max(20, cellW * innerPad);
+      const maxH = Math.max(20, cellH * innerPad);
+      const scale = Math.min(1, maxW / w, maxH / h);
+      return { w: Math.floor(w * scale), h: Math.floor(h * scale) };
+    }
+    function cssGradientCoords(bx, by, bw, bh, angleDeg) {
+      const rad = ((angleDeg - 90) * Math.PI) / 180;
+      const dx = Math.cos(rad);
+      const dy = Math.sin(rad);
+      const halfW = bw / 2;
+      const halfH = bh / 2;
+      const len = Math.abs(halfW * dx) + Math.abs(halfH * dy);
+      return {
+        x0: bx + halfW - dx * len,
+        y0: by + halfH - dy * len,
+        x1: bx + halfW + dx * len,
+        y1: by + halfH + dy * len
+      };
+    }
+    function getHexAndAlpha(hexColor, opacityPercent) {
+      return {
+        hex: hexColor,
+        alpha: (parseInt(opacityPercent, 10) / 100).toFixed(2)
+      };
+    }
+    function svgLinearGradientDef(id, x0, y0, x1, y1, c1Hex, c1Alpha, c2Hex, c2Alpha) {
+      return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}">
+        <stop offset="0%" stop-color="${c1Hex}" stop-opacity="${c1Alpha}"/>
+        <stop offset="100%" stop-color="${c2Hex}" stop-opacity="${c2Alpha}"/>
+      </linearGradient>`;
+    }
+
+    const GOOGLE_FONT_TTF_URLS = {
+      'Arimo': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/arimo@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/arimo@5.0.19/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/arimo@5.0.19/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/arimo@5.0.19/latin-700-italic.ttf'
+      },
+      'Roboto': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-700-italic.ttf'
+      },
+      'Montserrat': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/montserrat@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/montserrat@5.0.19/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/montserrat@5.0.19/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/montserrat@5.0.19/latin-700-italic.ttf'
+      },
+      'Oswald': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/oswald@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/oswald@5.0.19/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/oswald@5.0.19/latin-400-normal.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/oswald@5.0.19/latin-700-normal.ttf'
+      },
+      'Gelasio': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/gelasio@5.3.0/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/gelasio@5.3.0/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/gelasio@5.3.0/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/gelasio@5.3.0/latin-700-italic.ttf'
+      },
+      'Fira Sans': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/fira-sans@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/fira-sans@5.0.19/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/fira-sans@5.0.19/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/fira-sans@5.0.19/latin-700-italic.ttf'
+      },
+      'Courier Prime': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/courier-prime@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/courier-prime@5.0.19/latin-700-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/courier-prime@5.0.19/latin-400-italic.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/courier-prime@5.0.19/latin-700-italic.ttf'
+      },
+      'Anton': {
+        normal:     'https://cdn.jsdelivr.net/fontsource/fonts/anton@5.0.19/latin-400-normal.ttf',
+        bold:       'https://cdn.jsdelivr.net/fontsource/fonts/anton@5.0.19/latin-400-normal.ttf',
+        italic:     'https://cdn.jsdelivr.net/fontsource/fonts/anton@5.0.19/latin-400-normal.ttf',
+        boldItalic: 'https://cdn.jsdelivr.net/fontsource/fonts/anton@5.0.19/latin-400-normal.ttf'
+      }
+    };
+
+    function getCleanFontFamily(fontString) {
+      if (!fontString) return 'Arial';
+      const first = fontString.split(',')[0].trim().replace(/['"]/g, '');
+      return first || 'Arial';
+    }
+
+    const _fontCache = new Map();
+
+    // Track which uploaded fonts are variable (styles locked).
+    const _variableFonts = new Set();
+
+    // FIX 3: Style-aware cache key + 4-variant URL selection
+    async function _getFontForExport(family, weight, style) {
+      const isBoldVariant   = weight === 'bold' || weight === '700';
+      const isItalicVariant = style === 'italic';
+      const key = `${family}::${isBoldVariant ? 'bold' : 'normal'}::${isItalicVariant ? 'italic' : 'normal'}`;
+
+      if (_fontCache.has(key)) return _fontCache.get(key);
+
+      // 1. Google Fonts CDN — always preferred for built-in web fonts
+      if (GOOGLE_FONT_TTF_URLS[family]) {
+        let urlKey = 'normal';
+        if (isBoldVariant && isItalicVariant) urlKey = 'boldItalic';
+        else if (isBoldVariant)               urlKey = 'bold';
+        else if (isItalicVariant)             urlKey = 'italic';
+
+        const url = GOOGLE_FONT_TTF_URLS[family][urlKey] || GOOGLE_FONT_TTF_URLS[family].normal;
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) throw new Error('CDN fetch error ' + res.status);
+          const buf = await res.arrayBuffer();
+          const font = opentype.parse(buf);
+          _fontCache.set(key, font);
+          return font;
+        } catch (err) {
+          console.warn(`[Circole] Font fetch failed for ${family} (${key}):`, err.message);
+        }
+      }
+
+      // 2. Ensure local font buffer is loaded for scanned PC fonts
+      if (!_uploadedFontBuffers[family]) {
+        await _ensureLocalFontBuffer(family);
+      }
+
+      // 3. Local PC font buffer (with fallback to 'normal' so it never returns null)
+      if (_uploadedFontBuffers && _uploadedFontBuffers[family]) {
+        const slots = _uploadedFontBuffers[family];
+        const wantedKey = isBoldVariant && isItalicVariant ? 'boldItalic'
+                        : isBoldVariant ? 'bold'
+                        : isItalicVariant ? 'italic'
+                        : 'normal';
+        // Fallback to slots.normal if the specific weight/style buffer wasn't found on the PC font
+        const buf = slots[wantedKey] || slots.bold || slots.italic || slots.normal;
+        if (buf) {
+          try {
+            const font = opentype.parse(buf);
+            _fontCache.set(key, font);
+            return font;
+          } catch (_) {}
+        }
+      }
+
+      return null;
+    }
+	
+    // FIX 4: Invalidate all four variant cache keys when a local buffer is fetched
+    async function _ensureLocalFontBuffer(family) {
+      if (!family) return;
+      // Never override built-in Google Fonts with local PC files
+      if (GOOGLE_FONT_TTF_URLS[family]) return;
+      if (_uploadedFontBuffers[family]) return;
+      if (!('queryLocalFonts' in window)) return;
+      try {
+        const allFonts = await window.queryLocalFonts();
+        const faces = allFonts.filter(f => f.family.toLowerCase() === family.toLowerCase());
+        if (!faces.length) return;
+
+        const slots = {};
+        for (const face of faces) {
+          try {
+            const buf = await face.blob().then(b => b.arrayBuffer());
+            const parsed = opentype.parse(buf);
+            if (parsed && parsed.supported) {
+              if (parsed.tables && parsed.tables.fvar) {
+                _variableFonts.add(family);
+              }
+              const variant = _classifyVariant(face.style, parsed);
+              if (!slots[variant]) slots[variant] = buf;
+            }
+          } catch (_) {}
+        }
+        if (!slots.normal && faces.length) {
+          for (const face of faces) {
+            try {
+              const buf = await face.blob().then(b => b.arrayBuffer());
+              const parsed = opentype.parse(buf);
+              if (parsed && parsed.supported) {
+                slots.normal = buf;
+                break;
+              }
+            } catch (_) {}
+          }
+        }
+        if (Object.keys(slots).length) {
+          _uploadedFontBuffers[family] = slots;
+          _fontCache.delete(`${family}::normal::normal`);
+          _fontCache.delete(`${family}::bold::normal`);
+          _fontCache.delete(`${family}::normal::italic`);
+          _fontCache.delete(`${family}::bold::italic`);
+        }
+      } catch (_) {}
+    }
+	
+	    let _fontPreloadPromise = null;
+    function preloadGoogleFontVariants() {
+      if (_fontPreloadPromise) return _fontPreloadPromise;
+      const jobs = [];
+      for (const [family, urls] of Object.entries(GOOGLE_FONT_TTF_URLS)) {
+        for (const [variantKey, url] of Object.entries(urls)) {
+          const isBoldVariant   = variantKey === 'bold' || variantKey === 'boldItalic';
+          const isItalicVariant = variantKey === 'italic' || variantKey === 'boldItalic';
+          const cacheKey = `${family}::${isBoldVariant ? 'bold' : 'normal'}::${isItalicVariant ? 'italic' : 'normal'}`;
+          if (_fontCache.has(cacheKey)) continue;
+          jobs.push((async () => {
+            try {
+              const res = await fetch(url, { cache: 'no-store' });
+              if (!res.ok) return;
+              const buf = await res.arrayBuffer();
+              _fontCache.set(cacheKey, opentype.parse(buf));
+            } catch (_) {}
+          })());
+        }
+      }
+      _fontPreloadPromise = Promise.all(jobs);
+      return _fontPreloadPromise;
+    }
+
+    function _textToSvgPath(font, text, fontSize, dx, dy, weight, style, isVariable) {
+      try {
+        const _dx = dx || 0;
+        const _dy = dy || 0;
+        const advW = font.getAdvanceWidth(text, fontSize);
+        const path = font.getPath(text, _dx - advW / 2, _dy, fontSize);
+        const bbox = path.getBoundingBox();
+        const pw = bbox.x2 - bbox.x1;
+        const ph = bbox.y2 - bbox.y1;
+        const bCx = (bbox.x1 + bbox.x2) / 2;
+        const bCy = (bbox.y1 + bbox.y2) / 2;
+
+        const shiftX = _dx - bCx;
+        const shiftY = _dy - bCy;
+
+        // Strict variable-font faux-italic skew factor (≈12°)
+        const skew = (isVariable === true && style === 'italic') ? 0.21 : 0;
+
+        const shifted = new opentype.Path();
+        const fx = (x, y) => (x + shiftX) - skew * ((y + shiftY) - _dy);
+
+        for (const cmd of path.commands) {
+          switch (cmd.type) {
+            case 'M':
+              shifted.moveTo(fx(cmd.x, cmd.y), cmd.y + shiftY);
+              break;
+            case 'L':
+              shifted.lineTo(fx(cmd.x, cmd.y), cmd.y + shiftY);
+              break;
+            case 'C':
+              shifted.curveTo(
+                fx(cmd.x1, cmd.y1), cmd.y1 + shiftY,
+                fx(cmd.x2, cmd.y2), cmd.y2 + shiftY,
+                fx(cmd.x , cmd.y ), cmd.y  + shiftY
+              );
+              break;
+            case 'Q':
+              shifted.quadTo(
+                fx(cmd.x1, cmd.y1), cmd.y1 + shiftY,
+                fx(cmd.x , cmd.y ), cmd.y  + shiftY
+              );
+              break;
+            case 'Z':
+              shifted.close();
+              break;
+          }
+        }
+
+        return {
+          d: shifted.toPathData(2),
+          cx: _dx,
+          cy: _dy,
+          pw: Math.max(1, pw),
+          ph: Math.max(1, ph)
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+	
+    // For variable fonts, opentype.js only gives us the default instance.
+    // We approximate bold via stroke and italic via a horizontal skew, baked
+    // directly into the path coordinates (no transform attribute — Chromium-safe).
+    function _applyVariableFontStyling(pathData, fontSize, weight, style, isVariable) {
+      if (!isVariable || !pathData) return { d: pathData, strokeWidth: 0 };
+      let d = pathData;
+
+      // Italic: skew x by +x' = x - 0.21 * y (approx 12° slant).
+      if (style === 'italic') {
+        d = d.replace(/([MmLlCcSsQqTt])|(-?\d+(?:\.\d+)?)/g, (m, cmd) => cmd ? cmd : m);
+        // Easier: use opentype's Path rebuild via a translation-style pass below.
+        // We do a proper pass in _textToSvgPath instead; here we only handle bold stroke.
+      }
+
+      const strokeWidth = (weight === 'bold') ? fontSize * 0.045 : 0;
+      return { d, strokeWidth };
+    }
+	
+    function updateVectorIndicator(cleanFont) {
+      if (!fontVectorStatus) return;
+      const t = translations[currentLang];
+      const isGoogle   = !!GOOGLE_FONT_TTF_URLS[cleanFont];
+      const slots      = _uploadedFontBuffers[cleanFont];
+      const isVariable = _variableFonts.has(cleanFont);
+
+      const styleOk = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300";
+      const styleNt = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300";
+
+      if (isVariable) {
+        fontVectorStatus.textContent = (t.vecVariable || "✓ Vector (variable — static only)");
+        fontVectorStatus.className = styleNt;
+        return;
+      }
+      if (isGoogle) {
+        const googleHasItalic = !(cleanFont === 'Oswald' || cleanFont === 'Anton');
+        const googleHasBold   = !(cleanFont === 'Anton');
+        const italicMissing   = isItalic && !googleHasItalic;
+        const boldMissing     = isBold   && !googleHasBold;
+
+        if (boldMissing && italicMissing) {
+          fontVectorStatus.textContent = t.vecBoldItalicNA;
+          fontVectorStatus.className = styleNt;
+        } else if (boldMissing) {
+          fontVectorStatus.textContent = t.vecBoldNA;
+          fontVectorStatus.className = styleNt;
+        } else if (italicMissing) {
+          fontVectorStatus.textContent = t.vecItalicNA;
+          fontVectorStatus.className = styleNt;
+        } else {
+          fontVectorStatus.textContent = t.vecPaths;
+          fontVectorStatus.className = styleOk;
+        }
+        return;
+      }
+
+      if (slots) {
+        const hasBold   = !!(slots.bold || slots.boldItalic);
+        const hasItalic = !!(slots.italic || slots.boldItalic);
+        const anyPartial = (isBold && !hasBold) || (isItalic && !hasItalic);
+        if (anyPartial) {
+          fontVectorStatus.textContent = t.vecRomanOnly;
+          fontVectorStatus.className = styleNt;
+        } else {
+          fontVectorStatus.textContent = t.vecPaths;
+          fontVectorStatus.className = styleOk;
+        }
+        return;
+      }
+
+      fontVectorStatus.textContent = t.liveText;
+      fontVectorStatus.className = styleNt;
+    }
+	
+	function applyStyleButtonAvailability() {
+      const cleanFont = getCleanFontFamily(
+        getComputedStyle(document.documentElement).getPropertyValue('--active-font')
+      );
+      const isGoogle   = !!GOOGLE_FONT_TTF_URLS[cleanFont];
+      const slots      = _uploadedFontBuffers[cleanFont];
+      const isVariable = _variableFonts.has(cleanFont);
+
+      let boldAvailable, italicAvailable;
+
+      if (isGoogle) {
+        boldAvailable   = !(cleanFont === 'Anton');
+        italicAvailable = !(cleanFont === 'Oswald' || cleanFont === 'Anton');
+      } else if (isVariable) {
+        // Variable fonts: allow faux bold/italic.
+        boldAvailable   = true;
+        italicAvailable = true;
+      } else if (slots) {
+        boldAvailable   = !!(slots.bold || slots.boldItalic);
+        italicAvailable = !!(slots.italic || slots.boldItalic);
+      } else {
+        boldAvailable   = false;
+        italicAvailable = false;
+      }
+
+      btnBold.disabled = !boldAvailable;
+      btnBold.classList.toggle('opacity-40', !boldAvailable);
+      btnBold.classList.toggle('cursor-not-allowed', !boldAvailable);
+      if (!boldAvailable && isBold) {
+        isBold = false;
+        btnBold.classList.remove('bg-white', 'shadow-sm');
+      }
+
+      btnItalic.disabled = !italicAvailable;
+      btnItalic.classList.toggle('opacity-40', !italicAvailable);
+      btnItalic.classList.toggle('cursor-not-allowed', !italicAvailable);
+      if (!italicAvailable && isItalic) {
+        isItalic = false;
+        btnItalic.classList.remove('bg-white', 'shadow-sm');
+      }
+    }
+
+    const history = { stack: [], index: -1, maxSize: 60 };
+    let historyLock = false;
+
+    function snapshotState() {
+      return {
+        inputNum: inputNum.value,
+        inputPrefix: inputPrefix.value, inputSuffix: inputSuffix.value,
+        jumpStepSelect: jumpStepSelect.value,
+        showBorder, isRound, isBold, isItalic,
+        isPaperMode, paperFormat, isLandscape,
+        gridCols, gridRows, activeCellIndex, lastPaperCellIndex, noActiveCell, labelValues: labelValues.slice(),
+        sliderWidth: sliderWidth.value, sliderHeight: sliderHeight.value,
+        sliderRoundness: sliderRoundness.value, sliderSize: sliderSize.value,
+        bgIsGradient, bgColor1: bgColor1.value, bgColor2: bgColor2.value,
+        bgAngle: bgAngle.value, bgOpacity: bgOpacity.value,
+        textIsGradient, textColor1: textColor1.value, textColor2: textColor2.value,
+        textAngle: textAngle.value, textOpacity: textOpacity.value,
+        borderIsGradient, borderColor1: borderColor1.value, borderColor2: borderColor2.value,
+        borderAngle: borderAngle.value, borderOpacity: borderOpacity.value,
+        fontSelect: fontSelect.value,
+        shapeShadowEnabled: shapeShadowEnabled.checked, shapeShadowIsGradient,
+        shapeShadowColor1: shapeShadowColor1.value, shapeShadowColor2: shapeShadowColor2.value,
+        shapeShadowGradAngle: shapeShadowGradAngle.value, shapeShadowOpacity: shapeShadowOpacity.value,
+        shapeShadowDistance: shapeShadowDistance.value, shapeShadowBlur: shapeShadowBlur.value,
+        shapeShadowAngle: shapeShadowAngle.value,
+        textShadowEnabled: textShadowEnabled.checked, textShadowIsGradient,
+        textShadowColor1: textShadowColor1.value, textShadowColor2: textShadowColor2.value,
+        textShadowGradAngle: textShadowGradAngle.value, textShadowOpacity: textShadowOpacity.value,
+        textShadowDistance: textShadowDistance.value, textShadowBlur: textShadowBlur.value,
+        textShadowAngle: textShadowAngle.value
+      };
+    }
+    function applyState(s) {
+      historyLock = true;
+      inputNum.value = s.inputNum;
+      inputPrefix.value = s.inputPrefix; inputSuffix.value = s.inputSuffix;
+      jumpStepSelect.value = s.jumpStepSelect;
+      document.getElementById('btnBigMinus').textContent = `-${s.jumpStepSelect}`;
+      document.getElementById('btnBigPlus').textContent = `+${s.jumpStepSelect}`;
+
+      showBorder = s.showBorder; isRound = s.isRound;
+      isBold = s.isBold; isItalic = s.isItalic;
+      isPaperMode = s.isPaperMode; paperFormat = s.paperFormat; isLandscape = s.isLandscape;
+      gridCols = s.gridCols; gridRows = s.gridRows; activeCellIndex = s.activeCellIndex;
+      if (typeof s.lastPaperCellIndex === 'number') lastPaperCellIndex = s.lastPaperCellIndex;
+      noActiveCell = !!s.noActiveCell;
+      labelValues = s.labelValues.slice();
+      showBorder ? toggleBtn(btnBorderOn, btnBorderOff) : toggleBtn(btnBorderOff, btnBorderOn);
+      isRound ? toggleBtn(btnShapeCircle, btnShapeSquare) : toggleBtn(btnShapeSquare, btnShapeCircle);
+      isPaperMode ? toggleBtn(btnModePaper, btnModeFit) : toggleBtn(btnModeFit, btnModePaper);
+      paperFormat === 'letter' ? toggleBtn(btnPaperLetter, btnPaperA4) : toggleBtn(btnPaperA4, btnPaperLetter);
+      isLandscape ? toggleBtn(btnOrientLandscape, btnOrientPortrait) : toggleBtn(btnOrientPortrait, btnOrientLandscape);
+      paperSettingsContainer.classList.toggle('hidden', !isPaperMode);
+      inputGridCols.value = gridCols; inputGridRows.value = gridRows;
+      sliderWidth.value = s.sliderWidth; sliderHeight.value = s.sliderHeight;
+      sliderRoundness.value = s.sliderRoundness; sliderSize.value = s.sliderSize;
+      bgIsGradient = s.bgIsGradient; bgIsGradient ? btnBgGrad.click() : btnBgSolid.click();
+      bgColor1.value = s.bgColor1; bgColor2.value = s.bgColor2;
+      bgAngle.value = s.bgAngle; bgAngleVal.textContent = `${s.bgAngle}°`;
+      bgOpacity.value = s.bgOpacity; bgOpacityVal.textContent = `${s.bgOpacity}%`;
+      textIsGradient = s.textIsGradient; textIsGradient ? btnTextGrad.click() : btnTextSolid.click();
+      textColor1.value = s.textColor1; textColor2.value = s.textColor2;
+      textAngle.value = s.textAngle; textAngleVal.textContent = `${s.textAngle}°`;
+      textOpacity.value = s.textOpacity; textOpacityVal.textContent = `${s.textOpacity}%`;
+      borderIsGradient = s.borderIsGradient; borderIsGradient ? btnBorderGrad.click() : btnBorderSolid.click();
+      borderColor1.value = s.borderColor1; borderColor2.value = s.borderColor2;
+      borderAngle.value = s.borderAngle; borderAngleVal.textContent = `${s.borderAngle}°`;
+      borderOpacity.value = s.borderOpacity; borderOpacityVal.textContent = `${s.borderOpacity}%`;
+      isBold ? btnBold.classList.add('bg-white', 'shadow-sm') : btnBold.classList.remove('bg-white', 'shadow-sm');
+      isItalic ? btnItalic.classList.add('bg-white', 'shadow-sm') : btnItalic.classList.remove('bg-white', 'shadow-sm');
+	  if (s.fontSelect) {
+		const clean = getCleanFontFamily(s.fontSelect);
+		let matchedOption = false;
+		for (let opt of fontSelect.options) {
+		  if (getCleanFontFamily(opt.value) === clean) {
+			fontSelect.value = opt.value;
+			matchedOption = true;
+			break;
+		  }
+		}
+		if (!matchedOption) {
+		  // Font no longer in the dropdown (e.g. Playfair Display, Fira Code)
+		  // Fall back gracefully to Arimo
+		  fontSelect.value = "'Arimo', Arial, sans-serif";
+		}
+		document.documentElement.style.setProperty('--active-font', fontSelect.value);
+	  }
+      shapeShadowEnabled.checked = s.shapeShadowEnabled; shapeShadowIsGradient = s.shapeShadowIsGradient;
+      shapeShadowIsGradient ? btnShapeShadowGrad.click() : btnShapeShadowSolid.click();
+      shapeShadowColor1.value = s.shapeShadowColor1; shapeShadowColor2.value = s.shapeShadowColor2;
+      shapeShadowGradAngle.value = s.shapeShadowGradAngle; shapeShadowGradAngleVal.textContent = `${s.shapeShadowGradAngle}°`;
+      shapeShadowOpacity.value = s.shapeShadowOpacity; shapeShadowOpacityVal.textContent = `${s.shapeShadowOpacity}%`;
+      shapeShadowDistance.value = s.shapeShadowDistance; shapeShadowDistVal.textContent = s.shapeShadowDistance;
+      shapeShadowBlur.value = s.shapeShadowBlur; shapeShadowBlurVal.textContent = s.shapeShadowBlur;
+      shapeShadowAngle.value = s.shapeShadowAngle; shapeShadowAngleVal.textContent = `${s.shapeShadowAngle}°`;
+      textShadowEnabled.checked = s.textShadowEnabled; textShadowIsGradient = s.textShadowIsGradient;
+      textShadowIsGradient ? btnTextShadowGrad.click() : btnTextShadowSolid.click();
+      textShadowColor1.value = s.textShadowColor1; textShadowColor2.value = s.textShadowColor2;
+      textShadowGradAngle.value = s.textShadowGradAngle; textShadowGradAngleVal.textContent = `${s.textShadowGradAngle}°`;
+      textShadowOpacity.value = s.textShadowOpacity; textShadowOpacityVal.textContent = `${s.textShadowOpacity}%`;
+      textShadowDistance.value = s.textShadowDistance; textShadowDistVal.textContent = s.textShadowDistance;
+      textShadowBlur.value = s.textShadowBlur; textShadowBlurVal.textContent = s.textShadowBlur;
+      textShadowAngle.value = s.textShadowAngle; textShadowAngleVal.textContent = `${s.textShadowAngle}°`;
+      syncInputToCell();
+      render();
+      historyLock = false;
+      updateUndoRedoButtons();
+    }
+    function pushHistory() {
+      if (historyLock) return;
+      const snap = snapshotState();
+      const last = history.stack[history.index];
+      if (last && JSON.stringify(last) === JSON.stringify(snap)) return;
+      history.stack = history.stack.slice(0, history.index + 1);
+      history.stack.push(snap);
+      if (history.stack.length > history.maxSize) history.stack.shift();
+      history.index = history.stack.length - 1;
+      updateUndoRedoButtons();
+    }
+    function undo() { if (history.index > 0) { history.index--; applyState(history.stack[history.index]); } }
+    function redo() { if (history.index < history.stack.length - 1) { history.index++; applyState(history.stack[history.index]); } }
+    function updateUndoRedoButtons() {
+      btnUndo.disabled = history.index <= 0;
+      btnRedo.disabled = history.index >= history.stack.length - 1;
+    }
+    btnUndo.addEventListener('click', undo);
+    btnRedo.addEventListener('click', redo);
+
+    function hexToRgba(hex, alpha) {
+      const c = hex.replace('#', '');
+      return `rgba(${parseInt(c.substring(0,2),16)}, ${parseInt(c.substring(2,4),16)}, ${parseInt(c.substring(4,6),16)}, ${alpha})`;
+    }
+    function getShadowOffsets(distance, angleDeg) {
+      const rad = (angleDeg * Math.PI) / 180;
+      return { x: Math.round(distance * Math.cos(rad)), y: Math.round(distance * Math.sin(rad)) };
+    }
+    function makeFileName(label) {
+      const base = (label || 'label')
+        .replace(/\s+/g, '_').replace(/[\\/:*?"<>|]/g, '')
+        .replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+      return base || 'label';
+    }
+    function makeSheetFileName() {
+      const parts = labelValues.map(v => constructLabelFromNum(v));
+      let joined = parts.join('_');
+      if (joined.length > 120) joined = joined.slice(0, 117) + '_etc';
+      return makeFileName(joined);
+    }
+    function getFittedFontSize(text, boxWidth, boxHeight, baseFontSize, fontFamily, weight, style) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const maxW = boxWidth * 0.82;
+      const maxH = boxHeight * 0.82;
+      let size = baseFontSize;
+      while (size > 10) {
+        ctx.font = `${style} ${weight} ${size}px ${fontFamily}`;
+        const m = ctx.measureText(text);
+        if (m.width <= maxW && size <= maxH) break;
+        size -= 2;
+      }
+      return size;
+    }
+    function computeUniformFontSize(label, showBorderFlag, cw, ch, cellW, cellH, fs, fontFamily, weight, style) {
+      if (showBorderFlag) {
+        return getFittedFontSize(label, cw, ch, fs, fontFamily, weight, style);
+      } else {
+        const innerW = cellW * 0.94;
+        const innerH = cellH * 0.94;
+        let s = getFittedFontSize(label, innerW, innerH, fs, fontFamily, weight, style);
+        if (s > fs) s = fs;
+        return s;
+      }
+    }
+
+    function applyZoom(scale) {
+      currentZoom = Math.min(Math.max(scale, 0.08), 3.0);
+      artboardWrapper.style.transform = `scale(${currentZoom})`;
+      zoomPercentText.textContent = `${Math.round(currentZoom * 100)}%`;
+    }
+    function autoFitZoom() {
+      const { w, h } = isPaperMode ? getPaperSize() : { w: parseInt(sliderWidth.value, 10), h: parseInt(sliderHeight.value, 10) };
+      const rect = previewViewport.getBoundingClientRect();
+      const availW = Math.max(80, rect.width - 32);
+      const availH = Math.max(80, rect.height - 84);
+      const fitScale = Math.min(availW / w, availH / h);
+      applyZoom(isPaperMode ? fitScale : Math.min(fitScale, 1.0));
+    }
+    previewViewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      applyZoom(currentZoom * (e.deltaY < 0 ? 1.08 : 0.92));
+    }, { passive: false });
+    btnZoomOut.addEventListener('click', () => applyZoom(currentZoom - 0.1));
+    btnZoomIn.addEventListener('click', () => applyZoom(currentZoom + 0.1));
+    btnZoomReset.addEventListener('click', () => { if (isPaperMode) autoFitZoom(); else applyZoom(1.0); });
+    window.addEventListener('resize', () => { if (isPaperMode) autoFitZoom(); });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!isPaperMode) return;
+      if (e.target.closest('.cell-inner') ||
+          e.target.closest('.cell-number') ||
+          e.target.closest('.cell-text-shadow') ||
+          e.target.closest('.cell-shape-shadow')) {
+        return;
+      }
+      if (e.target.closest('#mainSidebar') ||
+          e.target.closest('.top-controls') ||
+          e.target.closest('#helpModal') ||
+          e.target.closest('#btnZoomOut') ||
+          e.target.closest('#btnZoomIn') ||
+          e.target.closest('#btnZoomReset')) {
+        return;
+      }
+      if (!e.target.closest('#previewViewport')) return;
+      if (!noActiveCell) { noActiveCell = true; render(); }
+    }, true);
+
+    document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const target = document.getElementById(trigger.dataset.target);
+        const icon = trigger.querySelector('i[data-lucide="chevron-down"]');
+        const isHidden = target.classList.contains('hidden');
+        target.classList.toggle('hidden', !isHidden);
+        if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    });
+    function toggleDrawer(open) {
+      mainSidebar.classList.toggle('-translate-x-full', !open);
+      sidebarBackdrop.classList.toggle('hidden', !open);
+    }
+    btnToggleSidebar.addEventListener('click', () => toggleDrawer(true));
+    btnCloseSidebar.addEventListener('click', () => toggleDrawer(false));
+    sidebarBackdrop.addEventListener('click', () => toggleDrawer(false));
+    function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
+    btnThemeToggle.addEventListener('click', toggleDarkMode);
+    btnMobileTheme.addEventListener('click', toggleDarkMode);
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      selectLang.value = lang;
+      if (selectLangMobile) selectLangMobile.value = lang;
+      const t = translations[lang];
+
+      document.getElementById('txtTabNumber').textContent = t.tabNumber;
+      document.getElementById('txtTabShape').textContent = t.tabShape;
+      document.getElementById('txtTabCanvas').textContent = t.tabCanvas;
+      document.getElementById('txtTabColors').textContent = t.tabColors;
+      document.getElementById('txtTabTypography').textContent = t.tabTypography;
+      document.getElementById('txtTabShadow').textContent = t.tabShadow;
+      document.getElementById('lblLang').textContent = t.langText;
+      document.getElementById('lblNumber').textContent = t.numberLabel;
+      document.getElementById('lblAffix').textContent = t.affixLabel;
+      inputPrefix.placeholder = t.prefixPlaceholder;
+      inputSuffix.placeholder = t.suffixPlaceholder;
+      document.getElementById('lblJump').textContent = t.jumpLabel;
+      document.getElementById('lblFrame').textContent = t.frameLabel;
+      btnBorderOn.textContent = t.showFrame;
+      btnBorderOff.textContent = t.noFrame;
+      document.getElementById('lblBase').textContent = t.baseLabel;
+      btnShapeCircle.textContent = t.round;
+      btnShapeSquare.textContent = t.box;
+      document.getElementById('lblCanvasMode').textContent = t.canvasMode;
+      btnModeFit.textContent = t.fitContent;
+      btnModePaper.textContent = t.paperSheet;
+      document.getElementById('lblPaperSize').textContent = t.paperSize;
+      document.getElementById('lblOrientation').textContent = t.orientation;
+      document.getElementById('lblPortrait').textContent = t.portrait;
+      document.getElementById('lblLandscape').textContent = t.landscape;
+      document.getElementById('lblGridCols').textContent = t.gridCols;
+      document.getElementById('lblGridRows').textContent = t.gridRows;
+      document.getElementById('lblNavHint').textContent = t.navHint;
+      document.getElementById('lblBgType').textContent = t.bgFill;
+      document.getElementById('lblTextType').textContent = t.textFill;
+      document.getElementById('lblBorderType').textContent = t.borderFill;
+      document.getElementById('lblBgOpacity').textContent = t.opacity;
+      document.getElementById('lblTextOpacity').textContent = t.opacity;
+      document.getElementById('lblBorderOpacity').textContent = t.opacity;
+      btnBgSolid.textContent = t.solid; btnBgGrad.textContent = t.gradient;
+      btnTextSolid.textContent = t.solid; btnTextGrad.textContent = t.gradient;
+      btnBorderSolid.textContent = t.solid; btnBorderGrad.textContent = t.gradient;
+      document.getElementById('lblStyle').textContent = t.style;
+      btnBold.textContent = t.bold; btnItalic.textContent = t.italic;
+      document.getElementById('lblFontSize').textContent = t.fontSize;
+      document.getElementById('lblMax').textContent = t.maxLabel;
+      document.getElementById('lblFit').textContent = t.fitLabel;
+      document.getElementById('lblFontFamily').textContent = t.fontFamily;
+      btnLoadFonts.textContent = t.loadFonts;
+      document.getElementById('lblUploadFont').textContent = t.uploadFont;
+      document.getElementById('lblEnableShapeShadow').textContent = t.enableShapeShadow;
+      document.getElementById('lblEnableTextShadow').textContent = t.enableTextShadow;
+      document.getElementById('lblShapeShadowType').textContent = t.shadowFill;
+      document.getElementById('lblTextShadowType').textContent = t.shadowFill;
+      document.getElementById('lblShapeShadowOpacity').textContent = t.opacity;
+      document.getElementById('lblTextShadowOpacity').textContent = t.opacity;
+      document.getElementById('lblShapeShadowDistance').textContent = t.distance;
+      document.getElementById('lblTextShadowDistance').textContent = t.distance;
+      document.getElementById('lblShapeShadowBlur').textContent = t.blur;
+      document.getElementById('lblTextShadowBlur').textContent = t.blur;
+      document.getElementById('lblShapeShadowAngle').textContent = t.angle;
+      document.getElementById('lblTextShadowAngle').textContent = t.angle;
+      btnShapeShadowSolid.textContent = t.solid; btnShapeShadowGrad.textContent = t.gradient;
+      btnTextShadowSolid.textContent = t.solid; btnTextGrad.textContent = t.gradient;
+      document.getElementById('btnDownloadPNG').textContent = t.downloadPNG;
+      document.getElementById('btnDownloadSVG').textContent = t.downloadSVG;
+      document.getElementById('btnPrint').textContent = t.printPDF;
+      document.getElementById('btnReset').textContent = t.reset;
+
+      document.getElementById('lblCellHint').textContent = t.cellHintPrefix;
+      document.getElementById('lblLoadBtn').textContent = t.loadLabel;
+      document.getElementById('lblSaveBtn').textContent = t.saveLabel;
+      btnLoadSettings.title = t.titleLoad;
+      btnSaveSettings.title = t.titleSave;
+      btnUndo.title = t.titleUndo;
+      btnRedo.title = t.titleRedo;
+
+      document.getElementById('lblPaperLetter').textContent = t.paperLetter;
+
+      document.getElementById('helpModalTitle').textContent = t.helpTitle;
+      document.getElementById('helpHeaderApp').textContent = "Circole";
+      document.getElementById('helpDescApp').textContent = t.helpAppDesc;
+      document.getElementById('helpHeaderCredits').textContent = t.helpCreators;
+      document.getElementById('creditDevs').textContent = t.helpDevs;
+      document.getElementById('creditAI').textContent = t.helpAI;
+      document.getElementById('helpHeaderShortcuts').textContent = t.helpShortcuts;
+      document.getElementById('btnCloseHelpModal').textContent = t.helpClose;
+
+      render();
+    }
+    selectLang.addEventListener('change', (e) => setLanguage(e.target.value));
+    if (selectLangMobile) selectLangMobile.addEventListener('change', (e) => setLanguage(e.target.value));
+
+    function sanitizeNumber(val) {
+      if (val === '' || val === '-') return val;
+      if (!/^-?\d+$/.test(val)) return val;
+      const isNeg = val.startsWith('-');
+      const digits = isNeg ? val.slice(1) : val;
+      const cleaned = digits.replace(/^0+(?=\d)/, '');
+      return (isNeg && cleaned !== '0') ? `-${cleaned}` : cleaned;
+    }
+    inputNum.addEventListener('input', () => {
+      const orig = inputNum.value;
+      const clean = sanitizeNumber(orig);
+      if (orig !== clean) inputNum.value = clean;
+      noActiveCell = false;
+      labelValues[activeCellIndex] = inputNum.value.trim() || '0';
+      render();
+    });
+    inputPrefix.addEventListener('input', render);
+    inputSuffix.addEventListener('input', render);
+
+    function swapBtn(active, inactive) {
+      active.className = "px-2 py-0.5 rounded bg-sky-600 text-white";
+      inactive.className = "px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
+    }
+    function toggleBtn(active, inactive) {
+      active.className = "py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-700 shadow-sm";
+      inactive.className = "py-1 text-xs font-medium rounded-md text-slate-500 dark:text-slate-400";
+    }
+    btnBgSolid.addEventListener('click', () => { bgIsGradient = false; swapBtn(btnBgSolid, btnBgGrad); bgColor2.classList.add('hidden'); bgAngleContainer.classList.add('hidden'); bgAngleContainer.classList.remove('flex'); render(); });
+    btnBgGrad.addEventListener('click', () => { bgIsGradient = true; swapBtn(btnBgGrad, btnBgSolid); bgColor2.classList.remove('hidden'); bgAngleContainer.classList.remove('hidden'); bgAngleContainer.classList.add('flex'); render(); });
+    btnTextSolid.addEventListener('click', () => { textIsGradient = false; swapBtn(btnTextSolid, btnTextGrad); textColor2.classList.add('hidden'); textAngleContainer.classList.add('hidden'); textAngleContainer.classList.remove('flex'); render(); });
+    btnTextGrad.addEventListener('click', () => { textIsGradient = true; swapBtn(btnTextGrad, btnTextSolid); textColor2.classList.remove('hidden'); textAngleContainer.classList.remove('hidden'); textAngleContainer.classList.add('flex'); render(); });
+    btnBorderSolid.addEventListener('click', () => { borderIsGradient = false; swapBtn(btnBorderSolid, btnBorderGrad); borderColor2.classList.add('hidden'); borderAngleContainer.classList.add('hidden'); borderAngleContainer.classList.remove('flex'); render(); });
+    btnBorderGrad.addEventListener('click', () => { borderIsGradient = true; swapBtn(btnBorderGrad, btnBorderSolid); borderColor2.classList.remove('hidden'); borderAngleContainer.classList.remove('hidden'); borderAngleContainer.classList.add('flex'); render(); });
+    btnShapeShadowSolid.addEventListener('click', () => { shapeShadowIsGradient = false; swapBtn(btnShapeShadowSolid, btnShapeShadowGrad); shapeShadowColor2.classList.add('hidden'); shapeShadowAngleContainer.classList.add('hidden'); shapeShadowAngleContainer.classList.remove('flex'); render(); });
+    btnShapeShadowGrad.addEventListener('click', () => { shapeShadowIsGradient = true; swapBtn(btnShapeShadowGrad, btnShapeShadowSolid); shapeShadowColor2.classList.remove('hidden'); shapeShadowAngleContainer.classList.remove('hidden'); shapeShadowAngleContainer.classList.add('flex'); render(); });
+    btnTextShadowSolid.addEventListener('click', () => { textShadowIsGradient = false; swapBtn(btnTextShadowSolid, btnTextShadowGrad); textShadowColor2.classList.add('hidden'); textShadowAngleContainer.classList.add('hidden'); textShadowAngleContainer.classList.remove('flex'); render(); });
+    btnTextShadowGrad.addEventListener('click', () => { textShadowIsGradient = true; swapBtn(btnTextShadowGrad, btnTextShadowSolid); textShadowColor2.classList.remove('hidden'); textShadowAngleContainer.classList.remove('hidden'); textShadowAngleContainer.classList.add('flex'); render(); });
+
+    bgAngle.addEventListener('input', () => { bgAngleVal.textContent = `${bgAngle.value}°`; render(); });
+    textAngle.addEventListener('input', () => { textAngleVal.textContent = `${textAngle.value}°`; render(); });
+    borderAngle.addEventListener('input', () => { borderAngleVal.textContent = `${borderAngle.value}°`; render(); });
+    bgOpacity.addEventListener('input', () => { bgOpacityVal.textContent = `${bgOpacity.value}%`; render(); });
+    textOpacity.addEventListener('input', () => { textOpacityVal.textContent = `${textOpacity.value}%`; render(); });
+    borderOpacity.addEventListener('input', () => { borderOpacityVal.textContent = `${borderOpacity.value}%`; render(); });
+    shapeShadowGradAngle.addEventListener('input', () => { shapeShadowGradAngleVal.textContent = `${shapeShadowGradAngle.value}°`; render(); });
+    shapeShadowOpacity.addEventListener('input', () => { shapeShadowOpacityVal.textContent = `${shapeShadowOpacity.value}%`; render(); });
+    shapeShadowDistance.addEventListener('input', () => { shapeShadowDistVal.textContent = shapeShadowDistance.value; render(); });
+    shapeShadowBlur.addEventListener('input', () => { shapeShadowBlurVal.textContent = shapeShadowBlur.value; render(); });
+    shapeShadowAngle.addEventListener('input', () => { shapeShadowAngleVal.textContent = `${shapeShadowAngle.value}°`; render(); });
+    textShadowGradAngle.addEventListener('input', () => { textShadowGradAngleVal.textContent = `${textShadowGradAngle.value}°`; render(); });
+    textShadowOpacity.addEventListener('input', () => { textShadowOpacityVal.textContent = `${textShadowOpacity.value}%`; render(); });
+    textShadowDistance.addEventListener('input', () => { textShadowDistVal.textContent = textShadowDistance.value; render(); });
+    textShadowBlur.addEventListener('input', () => { textShadowBlurVal.textContent = textShadowBlur.value; render(); });
+    textShadowAngle.addEventListener('input', () => { textShadowAngleVal.textContent = `${textShadowAngle.value}°`; render(); });
+    [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2, bgOpacity, textOpacity, borderOpacity, shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2].forEach(el => el.addEventListener('input', render));
+
+    btnBorderOn.addEventListener('click', () => { showBorder = true; toggleBtn(btnBorderOn, btnBorderOff); sliderWidth.max = 700; sliderHeight.max = 700; sliderWidth.value = preNoFrameWidth; sliderHeight.value = preNoFrameHeight; render(); });
+    btnBorderOff.addEventListener('click', () => { showBorder = false; toggleBtn(btnBorderOff, btnBorderOn); preNoFrameWidth = parseInt(sliderWidth.value, 10); preNoFrameHeight = parseInt(sliderHeight.value, 10); sliderWidth.max = 1000; sliderHeight.max = 1000; sliderWidth.value = 1000; sliderHeight.value = 1000; render(); });
+    btnShapeCircle.addEventListener('click', () => { isRound = true; toggleBtn(btnShapeCircle, btnShapeSquare); render(); });
+    btnShapeSquare.addEventListener('click', () => { isRound = false; toggleBtn(btnShapeSquare, btnShapeCircle); render(); });
+    btnBold.addEventListener('click', () => {
+      if (btnBold.disabled) return;
+      isBold = !isBold;
+      btnBold.classList.toggle('bg-white'); btnBold.classList.toggle('shadow-sm');
+      render();
+    });
+    btnItalic.addEventListener('click', () => {
+      if (btnItalic.disabled) return;
+      isItalic = !isItalic;
+      btnItalic.classList.toggle('bg-white'); btnItalic.classList.toggle('shadow-sm');
+      render();
+    });
+    shapeShadowEnabled.addEventListener('change', render);
+    textShadowEnabled.addEventListener('change', render);
+    fontSelect.addEventListener('change', async (e) => {
+      document.documentElement.style.setProperty('--active-font', e.target.value);
+      const family = getCleanFontFamily(e.target.value);
+      if (!GOOGLE_FONT_TTF_URLS[family] && !_uploadedFontBuffers[family]) {
+        await _ensureLocalFontBuffer(family);
+      }
+      applyStyleButtonAvailability();
+      updateVectorIndicator(family);
+      render();
+    });
+
+    btnModeFit.addEventListener('click', () => {
+      lastPaperCellIndex = activeCellIndex;
+      isPaperMode = false;
+      noActiveCell = false;
+      toggleBtn(btnModeFit, btnModePaper);
+      paperSettingsContainer.classList.add('hidden');
+      if (activeCellIndex >= totalCells()) activeCellIndex = 0;
+      render();
+      applyZoom(1.0);
+    });
+    btnModePaper.addEventListener('click', () => {
+      isPaperMode = true;
+      noActiveCell = false;
+      toggleBtn(btnModePaper, btnModeFit);
+      paperSettingsContainer.classList.remove('hidden');
+      ensureCellCapacity();
+      activeCellIndex = Math.min(lastPaperCellIndex, totalCells() - 1);
+      syncInputToCell();
+      render();
+      setTimeout(autoFitZoom, 20);
+    });
+    btnPaperA4.addEventListener('click', () => { paperFormat = 'a4'; toggleBtn(btnPaperA4, btnPaperLetter); render(); setTimeout(autoFitZoom, 20); });
+    btnPaperLetter.addEventListener('click', () => { paperFormat = 'letter'; toggleBtn(btnPaperLetter, btnPaperA4); render(); setTimeout(autoFitZoom, 20); });
+    btnOrientPortrait.addEventListener('click', () => { isLandscape = false; toggleBtn(btnOrientPortrait, btnOrientLandscape); render(); setTimeout(autoFitZoom, 20); });
+    btnOrientLandscape.addEventListener('click', () => { isLandscape = true; toggleBtn(btnOrientLandscape, btnOrientPortrait); render(); setTimeout(autoFitZoom, 20); });
+    inputGridCols.addEventListener('change', () => {
+      const v = Math.min(10, Math.max(1, parseInt(inputGridCols.value, 10) || 1));
+      inputGridCols.value = v; gridCols = v;
+      ensureCellCapacity(); render(); setTimeout(autoFitZoom, 20);
+    });
+    inputGridRows.addEventListener('change', () => {
+      const v = Math.min(10, Math.max(1, parseInt(inputGridRows.value, 10) || 1));
+      inputGridRows.value = v; gridRows = v;
+      ensureCellCapacity(); render(); setTimeout(autoFitZoom, 20);
+    });
+
+    let customFontCount = 0;
+    fontFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      if (file.name.toLowerCase().endsWith('.woff2')) {
+        alert(translations[currentLang].errFontLoad);
+        fontFileInput.value = '';
+        return;
+      }
+      const fontName = `UserFont_${++customFontCount}`;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const buf = ev.target.result;
+
+          // Variable-font detection via the fvar table.
+          let isVariable = false;
+          try {
+            const parsed = opentype.parse(buf);
+            isVariable = !!(parsed.tables && parsed.tables.fvar);
+          } catch (_) {}
+
+          // Store in the variant-aware slot structure.
+          _uploadedFontBuffers[fontName] = { normal: buf };
+          if (isVariable) _variableFonts.add(fontName);
+          else            _variableFonts.delete(fontName);
+
+          const fontFace = new FontFace(fontName, buf);
+          await fontFace.load();
+          document.fonts.add(fontFace);
+
+          const opt = document.createElement('option');
+          opt.value = `'${fontName}', sans-serif`;
+          opt.textContent = file.name.replace(/\.[^/.]+$/, "") + (isVariable ? " (Variable)" : " (Uploaded)");
+          opt.selected = true;
+          customFontsGroup.appendChild(opt);
+          document.documentElement.style.setProperty('--active-font', opt.value);
+          fontUploadStatus.textContent = `${translations[currentLang].activeFontPrefix} ${file.name}${isVariable ? ' — variable font, styles locked' : ''}`;
+          applyStyleButtonAvailability();
+          updateVectorIndicator(fontName);
+          render();
+        } catch (err) { alert(translations[currentLang].errFontLoad); }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+	
+    btnLoadFonts.addEventListener('click', async () => {
+      const t = translations[currentLang];
+      const isChromiumDesktop =
+        ('queryLocalFonts' in window) &&
+        !/Mobi|Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (!isChromiumDesktop) {
+        alert(t.errFontScanUnsupported);
+        return;
+      }
+      try {
+        btnLoadFonts.textContent = t.btnScanning;
+        const fonts = await window.queryLocalFonts();
+        const names = Array.from(new Set(fonts.map(f => f.family))).sort();
+        if (!names.length) { btnLoadFonts.textContent = t.btnNoFonts; setTimeout(() => { btnLoadFonts.textContent = t.loadFonts; }, 2000); return; }
+        customFontsGroup.innerHTML = '';
+        names.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = `"${name}", sans-serif`;
+          opt.textContent = name;
+          customFontsGroup.appendChild(opt);
+        });
+        btnLoadFonts.textContent = `${t.btnLoadedPrefix} ${names.length}`;
+      } catch (err) { btnLoadFonts.textContent = t.loadFonts; }
+    });
+
+    function validateInput() {
+      const val = getActiveLabel().trim();
+      const t = translations[currentLang];
+      if (val === '') {
+        if (constructLabelFromNum('').trim() === '') {
+          inputNum.classList.add('input-error');
+          errorMsg.textContent = t.errEmpty; errorMsg.classList.remove('hidden');
+          return false;
+        }
+      } else if (!/^-?\d+$/.test(val)) {
+        inputNum.classList.add('input-error');
+        errorMsg.textContent = t.errDigits; errorMsg.classList.remove('hidden');
+        return false;
+      }
+      inputNum.classList.remove('input-error');
+      errorMsg.classList.add('hidden');
+      return true;
+    }
+    function adjust(delta) {
+      noActiveCell = false;
+      let cur = parseInt(labelValues[activeCellIndex], 10);
+      if (isNaN(cur)) cur = 0;
+      labelValues[activeCellIndex] = String(cur + delta);
+      inputNum.value = labelValues[activeCellIndex];
+      render();
+    }
+    document.getElementById('btnMinus').addEventListener('click', () => adjust(-1));
+    document.getElementById('btnPlus').addEventListener('click', () => adjust(1));
+    document.getElementById('btnBigMinus').addEventListener('click', () => adjust(-parseInt(jumpStepSelect.value, 10)));
+    document.getElementById('btnBigPlus').addEventListener('click', () => adjust(parseInt(jumpStepSelect.value, 10)));
+    jumpStepSelect.addEventListener('change', (e) => {
+      document.getElementById('btnBigMinus').textContent = `-${e.target.value}`;
+      document.getElementById('btnBigPlus').textContent = `+${e.target.value}`;
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const tgt = e.target;
+      const isTypingTarget = tgt === inputPrefix || tgt === inputSuffix || tgt === inputNum || tgt.tagName === 'INPUT' || tgt.tagName === 'SELECT' || tgt.tagName === 'TEXTAREA';
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); undo(); return; }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z')))) { e.preventDefault(); redo(); return; }
+
+      if (isPaperMode && !isTypingTarget) {
+        const cols = gridCols, rows = gridRows;
+        let r = Math.floor(activeCellIndex / cols), c = activeCellIndex % cols;
+        if (e.key === 'PageUp') { e.preventDefault(); noActiveCell = false; activeCellIndex = (activeCellIndex - 1 + totalCells()) % totalCells(); syncInputToCell(); render(); return; }
+        if (e.key === 'PageDown') { e.preventDefault(); noActiveCell = false; activeCellIndex = (activeCellIndex + 1) % totalCells(); syncInputToCell(); render(); return; }
+        if (e.ctrlKey || e.metaKey) {
+          let moved = false;
+          if (e.key === 'ArrowLeft')  { c = (c - 1 + cols) % cols; moved = true; }
+          if (e.key === 'ArrowRight') { c = (c + 1) % cols; moved = true; }
+          if (e.key === 'ArrowUp')    { r = (r - 1 + rows) % rows; moved = true; }
+          if (e.key === 'ArrowDown')  { r = (r + 1) % rows; moved = true; }
+          if (moved) { e.preventDefault(); noActiveCell = false; activeCellIndex = r * cols + c; syncInputToCell(); render(); return; }
+        }
+      }
+      if (isTypingTarget) return;
+      const jumpAmount = parseInt(jumpStepSelect.value, 10) || 10;
+      if (e.key === 'ArrowUp') { e.preventDefault(); adjust(1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); adjust(-1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); adjust(-jumpAmount); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); adjust(jumpAmount); }
+      else if ((e.key === 'r' || e.key === 'R') && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); resetAll(); }
+    });
+    function syncInputToCell() {
+      inputNum.value = String(labelValues[activeCellIndex] ?? '0');
+    }
+    function resetAll() {
+      labelValues = ['0']; activeCellIndex = 0; lastPaperCellIndex = 0; noActiveCell = false; inputNum.value = '0';
+      inputPrefix.value = ''; inputSuffix.value = '';
+      sliderWidth.value = '340'; sliderHeight.value = '340'; sliderRoundness.value = '0'; sliderSize.value = '130';
+      showBorder = true; toggleBtn(btnBorderOn, btnBorderOff);
+      isRound = true; toggleBtn(btnShapeCircle, btnShapeSquare);
+      isBold = false; isItalic = false;
+      btnBold.classList.remove('bg-white', 'shadow-sm'); btnItalic.classList.remove('bg-white', 'shadow-sm');
+      bgIsGradient = false; swapBtn(btnBgSolid, btnBgGrad);
+      bgColor1.value = '#ffffff'; bgColor2.value = '#e2e8f0'; bgOpacity.value = '100'; bgOpacityVal.textContent = '100%';
+      bgColor2.classList.add('hidden'); bgAngleContainer.classList.add('hidden'); bgAngleContainer.classList.remove('flex');
+      textIsGradient = false; swapBtn(btnTextSolid, btnTextGrad);
+      textColor1.value = '#000000'; textColor2.value = '#3b82f6'; textOpacity.value = '100'; textOpacityVal.textContent = '100%';
+      textColor2.classList.add('hidden'); textAngleContainer.classList.add('hidden'); textAngleContainer.classList.remove('flex');
+      borderIsGradient = false; swapBtn(btnBorderSolid, btnBorderGrad);
+      borderColor1.value = '#000000'; borderColor2.value = '#38bdf8'; borderOpacity.value = '100'; borderOpacityVal.textContent = '100%';
+      borderColor2.classList.add('hidden'); borderAngleContainer.classList.add('hidden'); borderAngleContainer.classList.remove('flex');
+      shapeShadowEnabled.checked = false; shapeShadowIsGradient = false; swapBtn(btnShapeShadowSolid, btnShapeShadowGrad);
+      shapeShadowColor1.value = '#000000'; shapeShadowColor2.value = '#3b82f6'; shapeShadowOpacity.value = '50'; shapeShadowOpacityVal.textContent = '50%';
+      shapeShadowColor2.classList.add('hidden'); shapeShadowAngleContainer.classList.add('hidden'); shapeShadowAngleContainer.classList.remove('flex');
+      textShadowEnabled.checked = false; textShadowIsGradient = false; swapBtn(btnTextShadowSolid, btnTextShadowGrad);
+      textShadowColor1.value = '#000000'; textShadowColor2.value = '#ef4444'; textShadowOpacity.value = '50'; textShadowOpacityVal.textContent = '50%';
+      textShadowColor2.classList.add('hidden'); textShadowAngleContainer.classList.add('hidden'); textShadowAngleContainer.classList.remove('flex');
+      fontSelect.value = "'Arimo', Arial, sans-serif";
+      document.documentElement.style.setProperty('--active-font', fontSelect.value);
+      _variableFonts.clear();
+      isPaperMode = false; paperFormat = 'a4'; isLandscape = false; gridCols = 1; gridRows = 1;
+      toggleBtn(btnModeFit, btnModePaper); toggleBtn(btnPaperA4, btnPaperLetter); toggleBtn(btnOrientPortrait, btnOrientLandscape);
+      paperSettingsContainer.classList.add('hidden');
+      inputGridCols.value = 1; inputGridRows.value = 1;
+      applyStyleButtonAvailability();
+      render(); applyZoom(1.0);
+    }
+    document.getElementById('btnReset').addEventListener('click', resetAll);
+
+    btnSaveSettings.addEventListener('click', () => {
+      const cleanFontToSave = getCleanFontFamily(fontSelect.value);
+      const settings = {
+        version: 6,
+        labelValues: labelValues.slice(),
+        activeCellIndex, lastPaperCellIndex,
+        inputPrefix: inputPrefix.value, inputSuffix: inputSuffix.value,
+        jumpStepSelect: jumpStepSelect.value,
+        showBorder, isRound,
+        sliderWidth: sliderWidth.value, sliderHeight: sliderHeight.value,
+        sliderRoundness: sliderRoundness.value,
+        isPaperMode, paperFormat, isLandscape, gridCols, gridRows,
+        isBold, isItalic, sliderSize: sliderSize.value, fontSelect: cleanFontToSave,
+        bgIsGradient, bgColor1: bgColor1.value, bgColor2: bgColor2.value,
+        bgAngle: bgAngle.value, bgOpacity: bgOpacity.value,
+        textIsGradient, textColor1: textColor1.value, textColor2: textColor2.value,
+        textAngle: textAngle.value, textOpacity: textOpacity.value,
+        borderIsGradient, borderColor1: borderColor1.value, borderColor2: borderColor2.value,
+        borderAngle: borderAngle.value, borderOpacity: borderOpacity.value,
+        shapeShadowEnabled: shapeShadowEnabled.checked, shapeShadowIsGradient,
+        shapeShadowColor1: shapeShadowColor1.value, shapeShadowColor2: shapeShadowColor2.value,
+        shapeShadowGradAngle: shapeShadowGradAngle.value, shapeShadowOpacity: shapeShadowOpacity.value,
+        shapeShadowDistance: shapeShadowDistance.value, shapeShadowBlur: shapeShadowBlur.value,
+        shapeShadowAngle: shapeShadowAngle.value,
+        textShadowEnabled: textShadowEnabled.checked, textShadowIsGradient,
+        textShadowColor1: textShadowColor1.value, textShadowColor2: textShadowColor2.value,
+        textShadowGradAngle: textShadowGradAngle.value, textShadowOpacity: textShadowOpacity.value,
+        textShadowDistance: textShadowDistance.value, textShadowBlur: textShadowBlur.value,
+        textShadowAngle: textShadowAngle.value
+      };
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const namePart = isPaperMode && totalCells() > 1 ? makeSheetFileName() : makeFileName(constructLabel());
+      a.download = `num${namePart}.circole`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    btnLoadSettings.addEventListener('click', () => settingsFileInput.click());
+    settingsFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          historyLock = true;
+          const s = JSON.parse(ev.target.result);
+          if (s.isPaperMode === undefined) { isPaperMode = !!s.isA4Mode; paperFormat = 'a4'; }
+          else { isPaperMode = !!s.isPaperMode; paperFormat = s.paperFormat === 'letter' ? 'letter' : 'a4'; }
+          gridCols = Math.min(10, Math.max(1, parseInt(s.gridCols, 10) || 1));
+          gridRows = Math.min(10, Math.max(1, parseInt(s.gridRows, 10) || 1));
+          inputGridCols.value = gridCols; inputGridRows.value = gridRows;
+
+          if (Array.isArray(s.labelValues)) labelValues = s.labelValues.map(v => String(v));
+          else labelValues = [String(s.inputNum ?? '0')];
+          activeCellIndex = Math.min(Math.max(0, parseInt(s.activeCellIndex, 10) || 0), Math.max(0, labelValues.length - 1));
+          if (typeof s.lastPaperCellIndex === 'number') lastPaperCellIndex = s.lastPaperCellIndex;
+          else lastPaperCellIndex = activeCellIndex;
+          noActiveCell = false;
+          ensureCellCapacity();
+
+          if (s.inputPrefix !== undefined) inputPrefix.value = s.inputPrefix;
+          if (s.inputSuffix !== undefined) inputSuffix.value = s.inputSuffix;
+          if (s.jumpStepSelect !== undefined) {
+            jumpStepSelect.value = s.jumpStepSelect;
+            document.getElementById('btnBigMinus').textContent = `-${s.jumpStepSelect}`;
+            document.getElementById('btnBigPlus').textContent = `+${s.jumpStepSelect}`;
+          }
+          if (s.showBorder !== undefined) { showBorder = s.showBorder; showBorder ? toggleBtn(btnBorderOn, btnBorderOff) : toggleBtn(btnBorderOff, btnBorderOn); }
+          if (s.isRound !== undefined) { isRound = s.isRound; isRound ? toggleBtn(btnShapeCircle, btnShapeSquare) : toggleBtn(btnShapeSquare, btnShapeCircle); }
+          if (s.isLandscape !== undefined) { isLandscape = s.isLandscape; isLandscape ? toggleBtn(btnOrientLandscape, btnOrientPortrait) : toggleBtn(btnOrientPortrait, btnOrientLandscape); }
+          if (s.sliderWidth !== undefined) sliderWidth.value = s.sliderWidth;
+          if (s.sliderHeight !== undefined) sliderHeight.value = s.sliderHeight;
+          if (s.sliderRoundness !== undefined) sliderRoundness.value = s.sliderRoundness;
+          if (s.sliderSize !== undefined) sliderSize.value = s.sliderSize;
+
+          if (s.bgIsGradient !== undefined) { bgIsGradient = s.bgIsGradient; bgIsGradient ? btnBgGrad.click() : btnBgSolid.click(); }
+          if (s.bgColor1) bgColor1.value = s.bgColor1;
+          if (s.bgColor2) bgColor2.value = s.bgColor2;
+          if (s.bgAngle) { bgAngle.value = s.bgAngle; bgAngleVal.textContent = `${s.bgAngle}°`; }
+          if (s.bgOpacity) { bgOpacity.value = s.bgOpacity; bgOpacityVal.textContent = `${s.bgOpacity}%`; }
+
+          if (s.textIsGradient !== undefined) { textIsGradient = s.textIsGradient; textIsGradient ? btnTextGrad.click() : btnTextSolid.click(); }
+          if (s.textColor1) textColor1.value = s.textColor1;
+          if (s.textColor2) textColor2.value = s.textColor2;
+          if (s.textAngle) { textAngle.value = s.textAngle; textAngleVal.textContent = `${s.textAngle}°`; }
+          if (s.textOpacity) { textOpacity.value = s.textOpacity; textOpacityVal.textContent = `${s.textOpacity}%`; }
+
+          if (s.borderIsGradient !== undefined) { borderIsGradient = s.borderIsGradient; borderIsGradient ? btnBorderGrad.click() : btnBorderSolid.click(); }
+          if (s.borderColor1) borderColor1.value = s.borderColor1;
+          if (s.borderColor2) borderColor2.value = s.borderColor2;
+          if (s.borderAngle) { borderAngle.value = s.borderAngle; borderAngleVal.textContent = `${s.borderAngle}°`; }
+          if (s.borderOpacity) { borderOpacity.value = s.borderOpacity; borderOpacityVal.textContent = `${s.borderOpacity}%`; }
+
+          if (s.isBold !== undefined) { isBold = s.isBold; isBold ? btnBold.classList.add('bg-white','shadow-sm') : btnBold.classList.remove('bg-white','shadow-sm'); }
+          if (s.isItalic !== undefined) { isItalic = s.isItalic; isItalic ? btnItalic.classList.add('bg-white','shadow-sm') : btnItalic.classList.remove('bg-white','shadow-sm'); }
+
+		  if (s.fontSelect) {
+			const clean = getCleanFontFamily(s.fontSelect);
+			let matchedOption = false;
+			for (let opt of fontSelect.options) {
+			  if (getCleanFontFamily(opt.value) === clean) {
+				fontSelect.value = opt.value;
+				matchedOption = true;
+				break;
+			  }
+			}
+			if (!matchedOption) {
+			  fontSelect.value = "'Arimo', Arial, sans-serif";
+			}
+			document.documentElement.style.setProperty('--active-font', fontSelect.value);
+		  }
+	  
+          if (s.shapeShadowEnabled !== undefined) shapeShadowEnabled.checked = s.shapeShadowEnabled;
+          if (s.shapeShadowIsGradient !== undefined) { shapeShadowIsGradient = s.shapeShadowIsGradient; shapeShadowIsGradient ? btnShapeShadowGrad.click() : btnShapeShadowSolid.click(); }
+          if (s.shapeShadowColor1) shapeShadowColor1.value = s.shapeShadowColor1;
+          if (s.shapeShadowColor2) shapeShadowColor2.value = s.shapeShadowColor2;
+          if (s.shapeShadowGradAngle) { shapeShadowGradAngle.value = s.shapeShadowGradAngle; shapeShadowGradAngleVal.textContent = `${s.shapeShadowGradAngle}°`; }
+          if (s.shapeShadowOpacity) { shapeShadowOpacity.value = s.shapeShadowOpacity; shapeShadowOpacityVal.textContent = `${s.shapeShadowOpacity}%`; }
+          if (s.shapeShadowDistance) { shapeShadowDistance.value = s.shapeShadowDistance; shapeShadowDistVal.textContent = s.shapeShadowDistance; }
+          if (s.shapeShadowBlur) { shapeShadowBlur.value = s.shapeShadowBlur; shapeShadowBlurVal.textContent = s.shapeShadowBlur; }
+          if (s.shapeShadowAngle) { shapeShadowAngle.value = s.shapeShadowAngle; shapeShadowAngleVal.textContent = `${s.shapeShadowAngle}°`; }
+
+          if (s.textShadowEnabled !== undefined) textShadowEnabled.checked = s.textShadowEnabled;
+          if (s.textShadowIsGradient !== undefined) { textShadowIsGradient = s.textShadowIsGradient; textShadowIsGradient ? btnTextShadowGrad.click() : btnTextShadowSolid.click(); }
+          if (s.textShadowColor1) textShadowColor1.value = s.textShadowColor1;
+          if (s.textShadowColor2) textShadowColor2.value = s.textShadowColor2;
+          if (s.textShadowGradAngle) { textShadowGradAngle.value = s.textShadowGradAngle; textShadowGradAngleVal.textContent = `${s.textShadowGradAngle}°`; }
+          if (s.textShadowOpacity) { textShadowOpacity.value = s.textShadowOpacity; textShadowOpacityVal.textContent = `${s.textShadowOpacity}%`; }
+          if (s.textShadowDistance) { textShadowDistance.value = s.textShadowDistance; textShadowDistVal.textContent = s.textShadowDistance; }
+          if (s.textShadowBlur) { textShadowBlur.value = s.textShadowBlur; textShadowBlurVal.textContent = s.textShadowBlur; }
+          if (s.textShadowAngle) { textShadowAngle.value = s.textShadowAngle; textShadowAngleVal.textContent = `${s.textShadowAngle}°`; }
+
+          isPaperMode ? toggleBtn(btnModePaper, btnModeFit) : toggleBtn(btnModeFit, btnModePaper);
+          paperFormat === 'letter' ? toggleBtn(btnPaperLetter, btnPaperA4) : toggleBtn(btnPaperA4, btnPaperLetter);
+          paperSettingsContainer.classList.toggle('hidden', !isPaperMode);
+          syncInputToCell();
+		  applyStyleButtonAvailability();
+          render();
+
+          history.stack = [];
+          history.index = -1;
+          historyLock = false;
+          pushHistory();
+          updateUndoRedoButtons();
+
+          if (isPaperMode) setTimeout(autoFitZoom, 20);
+        } catch (err) {
+          historyLock = false;
+          alert(translations[currentLang].errInvalidFile);
+        }
+      };
+      reader.readAsText(file);
+      settingsFileInput.value = '';
+    });
+
+    function render() {
+      if (validateInput()) { }
+      ensureCellCapacity();
+
+      const maxFs = showBorder ? FONT_SIZE_MAX_BORDER : FONT_SIZE_MAX_NO_BORDER;
+      if (parseInt(sliderSize.max, 10) !== maxFs) {
+        sliderSize.max = maxFs;
+        if (parseInt(sliderSize.value, 10) > maxFs) sliderSize.value = maxFs;
+      }
+
+      const w = parseInt(sliderWidth.value, 10);
+      const h = parseInt(sliderHeight.value, 10);
+      const r = parseInt(sliderRoundness.value, 10);
+      const fs = parseInt(sliderSize.value, 10);
+
+      widthVal.textContent = w; heightVal.textContent = h; roundVal.textContent = r;
+      sizeMaxVal.textContent = fs;
+
+      const activeFont = getCleanFontFamily(
+        getComputedStyle(document.documentElement).getPropertyValue('--active-font')
+      );
+      updateVectorIndicator(activeFont);
+      const weight = isBold ? 'bold' : 'normal';
+      const style = isItalic ? 'italic' : 'normal';
+
+      const aBg = parseInt(bgOpacity.value, 10) / 100;
+      const aText = parseInt(textOpacity.value, 10) / 100;
+      const aBorder = parseInt(borderOpacity.value, 10) / 100;
+      const cBg1 = hexToRgba(bgColor1.value, aBg);
+      const cBg2 = hexToRgba(bgColor2.value, aBg);
+      const cText1 = hexToRgba(textColor1.value, aText);
+      const cText2 = hexToRgba(textColor2.value, aText);
+      const cBorder1 = hexToRgba(borderColor1.value, aBorder);
+      const cBorder2 = hexToRgba(borderColor2.value, aBorder);
+
+      const bgImageLayer = bgIsGradient ? `linear-gradient(${bgAngle.value}deg, ${cBg1}, ${cBg2})` : `linear-gradient(${cBg1}, ${cBg1})`;
+      const borderImageLayer = borderIsGradient ? `linear-gradient(${borderAngle.value}deg, ${cBorder1}, ${cBorder2})` : `linear-gradient(${cBorder1}, ${cBorder1})`;
+
+      let containerW, containerH, cellW, cellH, cols, rows;
+      if (isPaperMode) {
+        const ps = getPaperSize();
+        containerW = ps.w; containerH = ps.h;
+        cols = gridCols; rows = gridRows;
+        cellW = containerW / cols; cellH = containerH / rows;
+      } else {
+        containerW = w; containerH = h; cols = 1; rows = 1;
+        cellW = w; cellH = h;
+      }
+
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      gridContainer.style.width = containerW + 'px';
+      gridContainer.style.height = containerH + 'px';
+      gridContainer.style.background = isPaperMode ? '#ffffff' : 'transparent';
+
+      gridContainer.innerHTML = '';
+      const showGridBorders = isPaperMode && (cols * rows) > 1;
+
+      let baseShapeW = w, baseShapeH = h;
+      if (isPaperMode) {
+        const fit = computeShapeSize(w, h, cellW, cellH);
+        baseShapeW = fit.w; baseShapeH = fit.h;
+      }
+
+      if (!isPaperMode) {
+        gridContainer.style.display = 'flex';
+        gridContainer.style.alignItems = 'center';
+        gridContainer.style.justifyContent = 'center';
+      } else {
+        gridContainer.style.display = 'grid';
+      }
+
+      const longestLabel = longestSheetLabel();
+      let uniformFontSize;
+      if (showBorder) {
+        uniformFontSize = getFittedFontSize(longestLabel, baseShapeW, baseShapeH, fs, activeFont, weight, style);
+      } else {
+        const innerW = isPaperMode ? cellW * 0.94 : containerW;
+        const innerH = isPaperMode ? cellH * 0.94 : containerH;
+        uniformFontSize = getFittedFontSize(longestLabel, innerW, innerH, fs, activeFont, weight, style);
+        if (uniformFontSize > fs) uniformFontSize = fs;
+      }
+      sizeVal.textContent = uniformFontSize;
+
+      const sheetN = totalCells();
+      for (let i = 0; i < sheetN; i++) {
+        const cellEl = document.createElement('div');
+        cellEl.className = 'cell';
+        cellEl.dataset.cellIndex = i;
+        if (showGridBorders) cellEl.classList.add('has-grid-border');
+        if (isPaperMode && !noActiveCell && i === activeCellIndex) cellEl.classList.add('is-active-cell');
+        cellEl.style.width = cellW + 'px';
+        cellEl.style.height = cellH + 'px';
+
+        if (showBorder && shapeShadowEnabled.checked) {
+          const ss = document.createElement('div');
+          ss.className = 'cell-shape-shadow';
+          ss.style.width = baseShapeW + 'px';
+          ss.style.height = baseShapeH + 'px';
+          ss.style.borderRadius = isRound ? '50%' : r + 'px';
+          const sAlpha = parseInt(shapeShadowOpacity.value, 10) / 100;
+          const sc1 = hexToRgba(shapeShadowColor1.value, sAlpha);
+          const sc2 = hexToRgba(shapeShadowColor2.value, sAlpha);
+          ss.style.background = shapeShadowIsGradient
+            ? `linear-gradient(${shapeShadowGradAngle.value}deg, ${sc1}, ${sc2})`
+            : sc1;
+          const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+          const sBlur = parseInt(shapeShadowBlur.value, 10);
+          ss.style.transform = `translate(${sOff.x}px, ${sOff.y}px)`;
+          ss.style.filter = sBlur > 0 ? `blur(${sBlur}px)` : 'none';
+          cellEl.appendChild(ss);
+        }
+
+        const shapeEl = document.createElement('div');
+        shapeEl.className = 'cell-inner';
+        if (showBorder) {
+          shapeEl.style.width = baseShapeW + 'px';
+          shapeEl.style.height = baseShapeH + 'px';
+          shapeEl.style.border = '4px solid transparent';
+          shapeEl.style.background = `${bgImageLayer} padding-box, ${borderImageLayer} border-box`;
+          shapeEl.style.borderRadius = isRound ? '50%' : r + 'px';
+        } else {
+          shapeEl.style.width = (isPaperMode ? cellW : containerW) + 'px';
+          shapeEl.style.height = (isPaperMode ? cellH : containerH) + 'px';
+          shapeEl.style.background = bgIsGradient
+            ? `linear-gradient(${bgAngle.value}deg, ${cBg1}, ${cBg2})`
+            : cBg1;
+        }
+
+        const nw = document.createElement('div');
+        nw.className = 'cell-number-wrapper';
+
+        if (textShadowEnabled.checked) {
+          const ts = document.createElement('div');
+          ts.className = 'cell-text-shadow';
+          ts.textContent = constructLabelFromNum(labelValues[i] ?? '0');
+          ts.style.fontFamily = activeFont;
+          ts.style.fontSize = uniformFontSize + 'px';
+          ts.style.fontWeight = weight;
+          ts.style.fontStyle = style;
+          const tAlpha = parseInt(textShadowOpacity.value, 10) / 100;
+          const tc1 = hexToRgba(textShadowColor1.value, tAlpha);
+          const tc2 = hexToRgba(textShadowColor2.value, tAlpha);
+          if (textShadowIsGradient) {
+            ts.style.background = `linear-gradient(${textShadowGradAngle.value}deg, ${tc1}, ${tc2})`;
+            ts.style.webkitBackgroundClip = 'text';
+            ts.style.webkitTextFillColor = 'transparent';
+          } else {
+            ts.style.color = tc1;
+          }
+          const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+          const tBlur = parseInt(textShadowBlur.value, 10);
+          ts.style.transform = `translate(${tOff.x}px, ${tOff.y}px)`;
+          ts.style.filter = tBlur > 0 ? `blur(${tBlur}px)` : 'none';
+          nw.appendChild(ts);
+        }
+
+        const numEl = document.createElement('span');
+        numEl.className = 'cell-number';
+        numEl.textContent = constructLabelFromNum(labelValues[i] ?? '0');
+        numEl.style.fontFamily = activeFont;
+        numEl.style.fontSize = uniformFontSize + 'px';
+        numEl.style.fontWeight = weight;
+        numEl.style.fontStyle = style;
+        if (textIsGradient) {
+          numEl.style.background = `linear-gradient(${textAngle.value}deg, ${cText1}, ${cText2})`;
+          numEl.style.webkitBackgroundClip = 'text';
+          numEl.style.webkitTextFillColor = 'transparent';
+        } else {
+          numEl.style.color = cText1;
+        }
+        nw.appendChild(numEl);
+
+        shapeEl.appendChild(nw);
+        cellEl.appendChild(shapeEl);
+
+        if (isPaperMode) {
+          cellEl.style.cursor = 'default';
+          shapeEl.style.cursor = 'pointer';
+          shapeEl.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            noActiveCell = false;
+            activeCellIndex = i;
+            syncInputToCell();
+            render();
+          });
+        }
+        
+        gridContainer.appendChild(cellEl);
+      }
+
+      if (isPaperMode) {
+        artboardWrapper.style.width = containerW + 'px';
+        artboardWrapper.style.height = containerH + 'px';
+        artboardWrapper.style.minWidth = containerW + 'px';
+        artboardWrapper.style.minHeight = containerH + 'px';
+        artboardWrapper.style.maxWidth = containerW + 'px';
+        artboardWrapper.style.maxHeight = containerH + 'px';
+        artboardWrapper.className = `artboard-container origin-center pointer-events-auto flex items-center justify-center bg-white shadow-2xl border border-slate-300 dark:border-slate-700 shrink-0 relative paper-clip`;
+      } else {
+        artboardWrapper.style.width = 'auto';
+        artboardWrapper.style.height = 'auto';
+        artboardWrapper.style.minWidth = 'auto';
+        artboardWrapper.style.minHeight = 'auto';
+        artboardWrapper.style.maxWidth = 'none';
+        artboardWrapper.style.maxHeight = 'none';
+        artboardWrapper.className = `artboard-container origin-center pointer-events-auto flex items-center justify-center shrink-0 relative`;
+      }
+
+      if (isPaperMode && totalCells() > 1) {
+        cellHint.classList.remove('hidden');
+        cellHintIdx.textContent = noActiveCell
+          ? '—'
+          : String(activeCellIndex + 1) + '/' + totalCells();
+      } else {
+        cellHint.classList.add('hidden');
+      }
+
+      if (showBorder && shapeShadowEnabled.checked) shapeShadowControls.classList.remove('hidden');
+      else shapeShadowControls.classList.add('hidden');
+      if (textShadowEnabled.checked) textShadowControls.classList.remove('hidden');
+      else textShadowControls.classList.add('hidden');
+
+      if (!showBorder) shapeShadowEnabled.checked = false;
+
+      pushHistory();
+    }
+
+    document.getElementById('btnDownloadPNG').addEventListener('click', async () => {
+      await document.fonts.ready;
+      const fs = parseInt(sliderSize.value, 10);
+      const activeFont = getCleanFontFamily(
+        getComputedStyle(document.documentElement).getPropertyValue('--active-font')
+      );
+      await _ensureLocalFontBuffer(activeFont);
+      const stylePrefix = `${isItalic ? 'italic ' : ''}${isBold ? 'bold ' : ''}`;
+      const w = parseInt(sliderWidth.value, 10);
+      const h = parseInt(sliderHeight.value, 10);
+
+      if (!isPaperMode) {
+        const text = constructLabel();
+        let pad = 0;
+        if (showBorder && shapeShadowEnabled.checked) {
+          const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+          const sBlur = parseInt(shapeShadowBlur.value, 10);
+          pad = Math.max(pad, Math.abs(sOff.x) + sBlur * 2, Math.abs(sOff.y) + sBlur * 2);
+        }
+        if (textShadowEnabled.checked) {
+          const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+          const tBlur = parseInt(textShadowBlur.value, 10);
+          pad = Math.max(pad, Math.abs(tOff.x) + tBlur * 2, Math.abs(tOff.y) + tBlur * 2);
+        }
+        if (!showBorder) {
+          const noBorderFs = Math.min(fs, Math.floor(h * 0.94));
+          const mCanvas = document.createElement('canvas');
+          const mCtx = mCanvas.getContext('2d');
+          mCtx.font = `${stylePrefix}${noBorderFs}px ${activeFont}`;
+          const m = mCtx.measureText(text);
+          const ascent = m.actualBoundingBoxAscent || noBorderFs * 0.8;
+          const descent = m.actualBoundingBoxDescent || noBorderFs * 0.2;
+          const vOverflow = Math.max(0, Math.ceil(Math.max(ascent, descent) - h / 2 + 2));
+          const hOverflow = Math.max(0, Math.ceil(m.width / 2 - w / 2 + 2));
+          const textPad = Math.max(vOverflow, hOverflow, Math.ceil(Math.min(w, h) * 0.04));
+          pad = Math.max(pad, textPad);
+        }
+        pad = Math.ceil(pad);
+        const baseW = w, baseH = h;
+        const targetW = baseW + pad * 2, targetH = baseH + pad * 2;
+        const scale = 2;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = targetW * scale; canvas.height = targetH * scale;
+        ctx.scale(scale, scale);
+        ctx.translate(pad, pad);
+        drawSingleLabelToCtx(ctx, text, baseW, baseH, targetW, targetH, fs, activeFont, stylePrefix);
+        downloadCanvas(canvas, `num${makeFileName(text)}.png`);
+        return;
+      }
+
+      const ps = getPaperSize();
+      const containerW = ps.w, containerH = ps.h;
+      const cols = gridCols, rows = gridRows;
+      const cellW = containerW / cols, cellH = containerH / rows;
+      const fit = computeShapeSize(w, h, cellW, cellH);
+      const cw = showBorder ? fit.w : cellW;
+      const ch = showBorder ? fit.h : cellH;
+
+      const uniformFs = computeUniformFontSize(
+        longestSheetLabel(), showBorder, cw, ch, cellW, cellH, fs,
+        activeFont, isBold?'bold':'normal', isItalic?'italic':'normal'
+      );
+
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = containerW * scale; canvas.height = containerH * scale;
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, containerW, containerH);
+
+      for (let i = 0; i < cols * rows; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x0 = Math.round(col * cellW);
+        const y0 = Math.round(row * cellH);
+        const x1 = Math.round((col + 1) * cellW);
+        const y1 = Math.round((row + 1) * cellH);
+        const ccw = x1 - x0;
+        const cch = y1 - y0;
+        const ccx = x0 + ccw / 2;
+        const ccy = y0 + cch / 2;
+        const cellLabel = constructLabelFromNum(labelValues[i] ?? '0');
+        const drawW = showBorder ? cw : ccw;
+        const drawH = showBorder ? ch : cch;
+        drawCellIntoContext(ctx, ccx, ccy, drawW, drawH, cellLabel, uniformFs, activeFont);
+      }
+
+      downloadCanvas(canvas, `num${makeSheetFileName()}.png`);
+    });
+
+    function drawCellIntoContext(ctx, cx, cy, cw, ch, text, fontSize, activeFont) {
+      const r = parseInt(sliderRoundness.value, 10);
+      const aBg = parseInt(bgOpacity.value, 10) / 100;
+      const aText = parseInt(textOpacity.value, 10) / 100;
+      const aBorder = parseInt(borderOpacity.value, 10) / 100;
+      const cBg1 = hexToRgba(bgColor1.value, aBg);
+      const cBg2 = hexToRgba(bgColor2.value, aBg);
+      const cText1 = hexToRgba(textColor1.value, aText);
+      const cText2 = hexToRgba(textColor2.value, aText);
+      const cBorder1 = hexToRgba(borderColor1.value, aBorder);
+      const cBorder2 = hexToRgba(borderColor2.value, aBorder);
+
+      function cssLinearGradient(bx, by, bw, bh, angleDeg, c1, c2) {
+        const c = cssGradientCoords(bx, by, bw, bh, angleDeg);
+        const g = ctx.createLinearGradient(c.x0, c.y0, c.x1, c.y1);
+        g.addColorStop(0, c1); g.addColorStop(1, c2);
+        return g;
+      }
+      function drawShapePath(x, y, sw, sh) {
+        ctx.beginPath();
+        if (isRound) ctx.ellipse(x, y, sw/2, sh/2, 0, 0, Math.PI*2);
+        else ctx.roundRect(x - sw/2, y - sh/2, sw, sh, r);
+      }
+
+      if (showBorder && shapeShadowEnabled.checked) {
+        const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value,10), parseInt(shapeShadowAngle.value,10));
+        const sBlur = parseInt(shapeShadowBlur.value,10);
+        const sAlpha = parseInt(shapeShadowOpacity.value,10) / 100;
+        ctx.save();
+        if (sBlur > 0) ctx.filter = `blur(${sBlur}px)`;
+        let fill;
+        if (shapeShadowIsGradient) {
+          fill = cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(shapeShadowGradAngle.value,10),
+            hexToRgba(shapeShadowColor1.value, sAlpha), hexToRgba(shapeShadowColor2.value, sAlpha));
+        } else fill = hexToRgba(shapeShadowColor1.value, sAlpha);
+        ctx.translate(sOff.x, sOff.y);
+        ctx.fillStyle = fill;
+        drawShapePath(cx, cy, cw, ch);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (showBorder) {
+        const bgStyle = bgIsGradient
+          ? cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(bgAngle.value,10), cBg1, cBg2)
+          : cBg1;
+        ctx.save();
+        drawShapePath(cx, cy, cw, ch);
+        ctx.fillStyle = bgStyle;
+        ctx.fill();
+        ctx.lineWidth = 4;
+        if (borderIsGradient) {
+          ctx.strokeStyle = cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(borderAngle.value,10), cBorder1, cBorder2);
+        } else ctx.strokeStyle = cBorder1;
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        const bgStyle = bgIsGradient
+          ? cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(bgAngle.value,10), cBg1, cBg2)
+          : cBg1;
+        ctx.fillStyle = bgStyle;
+        ctx.fillRect(cx - cw/2, cy - ch/2, cw, ch);
+      }
+
+      ctx.font = `${isItalic?'italic ':''}${isBold?'bold ':''}${fontSize}px ${activeFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (textShadowEnabled.checked) {
+        const tOff = getShadowOffsets(parseInt(textShadowDistance.value,10), parseInt(textShadowAngle.value,10));
+        const tBlur = parseInt(textShadowBlur.value,10);
+        const tAlpha = parseInt(textShadowOpacity.value,10) / 100;
+        ctx.save();
+        if (tBlur > 0) ctx.filter = `blur(${tBlur}px)`;
+        let fill;
+        if (textShadowIsGradient) {
+          const m = ctx.measureText(text);
+          const tw = Math.max(1, m.width), th = fontSize * 1.2;
+          fill = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textShadowGradAngle.value,10),
+            hexToRgba(textShadowColor1.value, tAlpha), hexToRgba(textShadowColor2.value, tAlpha));
+        } else fill = hexToRgba(textShadowColor1.value, tAlpha);
+        ctx.translate(tOff.x, tOff.y);
+        ctx.fillStyle = fill;
+        ctx.fillText(text, cx, cy);
+        ctx.restore();
+      }
+
+      if (textIsGradient) {
+        const m = ctx.measureText(text);
+        const tw = Math.max(1, m.width), th = fontSize * 1.2;
+        ctx.fillStyle = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textAngle.value,10), cText1, cText2);
+      } else ctx.fillStyle = cText1;
+      ctx.fillText(text, cx, cy);
+    }
+
+    function drawSingleLabelToCtx(ctx, text, baseW, baseH, targetW, targetH, fs, activeFont, stylePrefix) {
+      const w = baseW, h = baseH;
+      const cx = w / 2, cy = h / 2;
+      const r = parseInt(sliderRoundness.value, 10);
+      const aBg = parseInt(bgOpacity.value, 10) / 100;
+      const aText = parseInt(textOpacity.value, 10) / 100;
+      const aBorder = parseInt(borderOpacity.value, 10) / 100;
+      const cBg1 = hexToRgba(bgColor1.value, aBg);
+      const cBg2 = hexToRgba(bgColor2.value, aBg);
+      const cText1 = hexToRgba(textColor1.value, aText);
+      const cText2 = hexToRgba(textColor2.value, aText);
+      const cBorder1 = hexToRgba(borderColor1.value, aBorder);
+      const cBorder2 = hexToRgba(borderColor2.value, aBorder);
+
+      function cssLinearGradient(bx, by, bw, bh, angleDeg, c1, c2) {
+        const c = cssGradientCoords(bx, by, bw, bh, angleDeg);
+        const g = ctx.createLinearGradient(c.x0, c.y0, c.x1, c.y1);
+        g.addColorStop(0, c1); g.addColorStop(1, c2);
+        return g;
+      }
+      function drawShapePath(x, y, sw, sh) {
+        ctx.beginPath();
+        if (isRound) ctx.ellipse(x, y, sw/2, sh/2, 0, 0, Math.PI*2);
+        else ctx.roundRect(x - sw/2, y - sh/2, sw, sh, r);
+      }
+
+      if (!showBorder) {
+        const bgStyle = bgIsGradient
+          ? cssLinearGradient(0, 0, w, h, parseInt(bgAngle.value,10), cBg1, cBg2)
+          : cBg1;
+        ctx.fillStyle = bgStyle;
+        ctx.fillRect(0, 0, w, h);
+      }
+      if (showBorder && shapeShadowEnabled.checked) {
+        const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value,10), parseInt(shapeShadowAngle.value,10));
+        const sBlur = parseInt(shapeShadowBlur.value,10);
+        const sAlpha = parseInt(shapeShadowOpacity.value,10) / 100;
+        ctx.save();
+        if (sBlur > 0) ctx.filter = `blur(${sBlur}px)`;
+        let fill;
+        if (shapeShadowIsGradient) fill = cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(shapeShadowGradAngle.value,10),
+          hexToRgba(shapeShadowColor1.value, sAlpha), hexToRgba(shapeShadowColor2.value, sAlpha));
+        else fill = hexToRgba(shapeShadowColor1.value, sAlpha);
+        ctx.translate(sOff.x, sOff.y);
+        ctx.fillStyle = fill;
+        drawShapePath(cx, cy, w, h);
+        ctx.fill();
+        ctx.restore();
+      }
+      if (showBorder) {
+        const bgStyle = bgIsGradient ? cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(bgAngle.value,10), cBg1, cBg2) : cBg1;
+        ctx.save();
+        drawShapePath(cx, cy, w, h);
+        ctx.fillStyle = bgStyle; ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = borderIsGradient ? cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(borderAngle.value,10), cBorder1, cBorder2) : cBorder1;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      const computedFs = computeUniformFontSize(
+        text, showBorder, w, h, w, h, fs,
+        activeFont, isBold?'bold':'normal', isItalic?'italic':'normal'
+      );
+      ctx.font = `${stylePrefix}${computedFs}px ${activeFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (textShadowEnabled.checked) {
+        const tOff = getShadowOffsets(parseInt(textShadowDistance.value,10), parseInt(textShadowAngle.value,10));
+        const tBlur = parseInt(textShadowBlur.value,10);
+        const tAlpha = parseInt(textShadowOpacity.value,10) / 100;
+        ctx.save();
+        if (tBlur > 0) ctx.filter = `blur(${tBlur}px)`;
+        let fill;
+        if (textShadowIsGradient) {
+          const m = ctx.measureText(text);
+          const tw = Math.max(1, m.width), th = computedFs * 1.2;
+          fill = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textShadowGradAngle.value,10),
+            hexToRgba(textShadowColor1.value, tAlpha), hexToRgba(textShadowColor2.value, tAlpha));
+        } else fill = hexToRgba(textShadowColor1.value, tAlpha);
+        ctx.translate(tOff.x, tOff.y);
+        ctx.fillStyle = fill;
+        ctx.fillText(text, cx, cy);
+        ctx.restore();
+      }
+      if (textIsGradient) {
+        const m = ctx.measureText(text);
+        const tw = Math.max(1, m.width), th = computedFs * 1.2;
+        ctx.fillStyle = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textAngle.value,10), cText1, cText2);
+      } else ctx.fillStyle = cText1;
+      ctx.fillText(text, cx, cy);
+    }
+
+    function downloadCanvas(canvas, filename) {
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    // ------- SVG Export -------
+    let svgGradCounter = 0;
+    function nextSvgGradId(prefix) { return `${prefix}_${++svgGradCounter}`; }
+
+	const GOOGLE_FONTS_SVG_STYLE = `    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Arimo:ital,wght@0,400;0,700;1,400;1,700&amp;family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&amp;family=Fira+Sans:ital,wght@0,400;0,700;1,400;1,700&amp;family=Gelasio:ital,wght@0,400;0,700;1,400;1,700&amp;family=Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700&amp;family=Oswald:wght@400;700&amp;family=Roboto:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+    </style>\n`;
+
+    async function buildSvgForExport() {
+      const fs = parseInt(sliderSize.value, 10);
+      const activeFontRaw = getComputedStyle(document.documentElement).getPropertyValue('--active-font');
+      const cleanFont = getCleanFontFamily(activeFontRaw);
+      await _ensureLocalFontBuffer(cleanFont);
+      const weight = isBold ? 'bold' : 'normal';
+      const style = isItalic ? 'italic' : 'normal';
+      const w = parseInt(sliderWidth.value, 10);
+      const h = parseInt(sliderHeight.value, 10);
+
+      if (!isPaperMode) {
+        const text = constructLabel();
+        return await buildSvgSingle(text, w, h, fs, cleanFont, weight, style);
+      }
+
+      const ps = getPaperSize();
+      const containerW = ps.w, containerH = ps.h;
+      const cols = gridCols, rows = gridRows;
+      const cellW = containerW / cols, cellH = containerH / rows;
+      const fit = computeShapeSize(w, h, cellW, cellH);
+      const cw = showBorder ? fit.w : cellW;
+      const ch = showBorder ? fit.h : cellH;
+
+      const uniformFs = computeUniformFontSize(
+        longestSheetLabel(), showBorder, cw, ch, cellW, cellH, fs,
+        cleanFont, weight, style
+      );
+
+      const sBlur = parseInt(shapeShadowBlur.value, 10);
+      const tBlur = parseInt(textShadowBlur.value, 10);
+
+      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
+        rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
+    </filter>\n`;
+      }
+      if (textShadowEnabled.checked && tBlur > 0) {
+        rootDefs += `    <filter id="svgTextShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
+    </filter>\n`;
+      }
+
+      let cellsMarkup = '';
+      for (let i = 0; i < cols * rows; i++) {
+        const row = Math.floor(i / cols), col = i % cols;
+        const x0 = Math.round(col * cellW);
+        const y0 = Math.round(row * cellH);
+        const x1 = Math.round((col + 1) * cellW);
+        const y1 = Math.round((row + 1) * cellH);
+        const ccw = x1 - x0;
+        const cch = y1 - y0;
+        const ccx = x0 + ccw / 2;
+        const ccy = y0 + cch / 2;
+        const label = constructLabelFromNum(labelValues[i] ?? '0');
+        const drawW = showBorder ? cw : ccw;
+        const drawH = showBorder ? ch : cch;
+
+        const res = await buildSvgCellMarkup(ccx, ccy, drawW, drawH, label, uniformFs, cleanFont, weight, style);
+        rootDefs += res.defs;
+        cellsMarkup += res.markup;
+      }
+
+      return `<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${containerW}" height="${containerH}" viewBox="0 0 ${containerW} ${containerH}">
+  <defs>
+${rootDefs}  </defs>
+  <rect width="${containerW}" height="${containerH}" fill="#ffffff"/>
+${cellsMarkup}</svg>`;
+    }
+
+    document.getElementById('btnDownloadSVG').addEventListener('click', async () => {
+      const svg = await buildSvgForExport();
+      const name = isPaperMode && totalCells() > 1 ? makeSheetFileName() : makeFileName(constructLabel());
+      downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `num${name}.svg`);
+    });
+
+	async function buildSvgCellMarkup(cx, cy, cw, ch, text, fontSize, cleanFont, weight, style) {
+      const r = parseInt(sliderRoundness.value, 10);
+      const bg  = getHexAndAlpha(bgColor1.value, bgOpacity.value);
+      const bg2 = getHexAndAlpha(bgColor2.value, bgOpacity.value);
+      const txt = getHexAndAlpha(textColor1.value, textOpacity.value);
+      const txt2 = getHexAndAlpha(textColor2.value, textOpacity.value);
+      const bdr  = getHexAndAlpha(borderColor1.value, borderOpacity.value);
+      const bdr2 = getHexAndAlpha(borderColor2.value, borderOpacity.value);
+      const sBlur = parseInt(shapeShadowBlur.value, 10);
+      const tBlur = parseInt(textShadowBlur.value, 10);
+
+      const _mCanvas = document.createElement('canvas');
+      const _mCtx = _mCanvas.getContext('2d');
+      _mCtx.font = `${style === 'italic' ? 'italic ' : ''}${weight === 'bold' ? 'bold ' : ''}${fontSize}px ${cleanFont}`;
+      const _m = _mCtx.measureText(text);
+      const gradW = Math.max(1, _m.width);
+      const gradH = fontSize * 1.2;
+
+      const font = await _getFontForExport(cleanFont, weight, style);
+      const isGoogle = !!GOOGLE_FONT_TTF_URLS[cleanFont];
+      const isVarFont = !isGoogle && _variableFonts.has(cleanFont);
+      const hasNativeBold = isGoogle ? true : !!(_uploadedFontBuffers[cleanFont]?.bold || _uploadedFontBuffers[cleanFont]?.boldItalic);
+      
+      // Zero stroke for Google Fonts and fonts with native bold; faux stroke only for single-face variable fonts
+      const boldStrokeWidth = (!hasNativeBold && weight === 'bold') ? fontSize * 0.03 : 0;
+      const glyphData = font ? _textToSvgPath(font, text, fontSize, cx, cy, weight, style, isVarFont) : null;
+
+      const weightNum = (weight === 'bold' || weight === '700') ? '700' : '400';
+      const synthStyle = isVarFont ? 'font-synthesis: weight style;' : 'font-synthesis: none;';
+
+      let defs = '';
+      let markup = '';
+
+      // --- SHAPE SHADOW ---
+      if (showBorder && shapeShadowEnabled.checked) {
+        const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+        const ss1 = getHexAndAlpha(shapeShadowColor1.value, shapeShadowOpacity.value);
+        const ss2 = getHexAndAlpha(shapeShadowColor2.value, shapeShadowOpacity.value);
+        let sFill = ss1.hex;
+        let sFillOpacity = ss1.alpha;
+        if (shapeShadowIsGradient) {
+          const id = nextSvgGradId('shapeShadowGrad');
+          const c = cssGradientCoords(cx + sOff.x - cw / 2, cy + sOff.y - ch / 2, cw, ch, parseInt(shapeShadowGradAngle.value, 10));
+          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ss1.hex, ss1.alpha, ss2.hex, ss2.alpha) + '\n';
+          sFill = `url(#${id})`;
+          sFillOpacity = '1';
+        }
+        const shapeFilterAttr = sBlur > 0 ? ' filter="url(#svgShapeShadow)"' : '';
+        if (isRound) {
+          markup += `  <ellipse cx="${(cx + sOff.x).toFixed(2)}" cy="${(cy + sOff.y).toFixed(2)}" rx="${(cw / 2).toFixed(2)}" ry="${(ch / 2).toFixed(2)}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+        } else {
+          markup += `  <rect x="${(cx - cw / 2 + sOff.x).toFixed(2)}" y="${(cy - ch / 2 + sOff.y).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" rx="${r}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+        }
+      }
+
+      // --- SHAPE BACKGROUND ---
+      let bgFill = bg.hex;
+      let bgFillOpacity = bg.alpha;
+      if (bgIsGradient) {
+        const id = nextSvgGradId('bgGrad');
+        const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(bgAngle.value, 10));
+        defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, bg.hex, bg.alpha, bg2.hex, bg2.alpha) + '\n';
+        bgFill = `url(#${id})`;
+        bgFillOpacity = '1';
+      }
+
+      let strokeAttr = '';
+      if (showBorder) {
+        let bColor = bdr.hex;
+        let bOpacity = bdr.alpha;
+        if (borderIsGradient) {
+          const id = nextSvgGradId('bdrGrad');
+          const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(borderAngle.value, 10));
+          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, bdr.hex, bdr.alpha, bdr2.hex, bdr2.alpha) + '\n';
+          bColor = `url(#${id})`;
+          bOpacity = '1';
+        }
+        strokeAttr = ` stroke="${bColor}" stroke-opacity="${bOpacity}" stroke-width="4"`;
+      }
+
+      if (showBorder) {
+        if (isRound) {
+          markup += `  <ellipse cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" rx="${(cw / 2).toFixed(2)}" ry="${(ch / 2).toFixed(2)}" fill="${bgFill}" fill-opacity="${bgFillOpacity}"${strokeAttr}/>\n`;
+        } else {
+          markup += `  <rect x="${(cx - cw / 2).toFixed(2)}" y="${(cy - ch / 2).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" rx="${r}" fill="${bgFill}" fill-opacity="${bgFillOpacity}"${strokeAttr}/>\n`;
+        }
+      } else {
+        markup += `  <rect x="${(cx - cw / 2).toFixed(2)}" y="${(cy - ch / 2).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" fill="${bgFill}" fill-opacity="${bgFillOpacity}"/>\n`;
+      }
+
+      // --- TEXT SHADOW ---
+      if (textShadowEnabled.checked) {
+        const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+        const ts1 = getHexAndAlpha(textShadowColor1.value, textShadowOpacity.value);
+        const ts2 = getHexAndAlpha(textShadowColor2.value, textShadowOpacity.value);
+        let tsFill = ts1.hex;
+        let tsFillOpacity = ts1.alpha;
+
+        if (textShadowIsGradient) {
+          const id = nextSvgGradId('txtShadowGrad');
+          const c = cssGradientCoords(cx + tOff.x - gradW / 2, cy + tOff.y - gradH / 2, gradW, gradH, parseInt(textShadowGradAngle.value, 10));
+          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ts1.hex, ts1.alpha, ts2.hex, ts2.alpha) + '\n';
+          tsFill = `url(#${id})`;
+          tsFillOpacity = '1';
+        }
+
+        const textFilterAttr = tBlur > 0 ? ' filter="url(#svgTextShadow)"' : '';
+        const opacAttr = tsFillOpacity !== '1.00' && tsFillOpacity !== 1 ? ` fill-opacity="${tsFillOpacity}"` : '';
+
+        // Guarantee font is fully loaded for PC scanned fonts before building shadow path
+        let activeFontObj = font;
+        if (!activeFontObj) {
+          activeFontObj = await _getFontForExport(cleanFont, weight, style);
+        }
+
+        const shadowGlyph = activeFontObj ? _textToSvgPath(activeFontObj, text, fontSize, cx + tOff.x, cy + tOff.y, weight, style, isVarFont) : null;
+
+        if (shadowGlyph) {
+          const shadowStrokeAttr = boldStrokeWidth > 0
+            ? ` stroke="${tsFill}" stroke-width="${boldStrokeWidth.toFixed(2)}" stroke-linejoin="round" paint-order="stroke fill"`
+            : '';
+          
+          if (tBlur > 0) {
+            markup += `  <g${textFilterAttr}>\n    <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n  </g>\n`;
+          } else {
+            markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n`;
+          }
+        }
+      }
+
+      // --- MAIN TEXT ---
+      let tFill = txt.hex;
+      let tFillOpacity = txt.alpha;
+      if (textIsGradient) {
+        const id = nextSvgGradId('textGrad');
+        const c = cssGradientCoords(cx - gradW / 2, cy - gradH / 2, gradW, gradH, parseInt(textAngle.value, 10));
+        defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, txt.hex, txt.alpha, txt2.hex, txt2.alpha) + '\n';
+        tFill = `url(#${id})`;
+        tFillOpacity = '1';
+      }
+
+      const fgOpacAttr = tFillOpacity !== '1.00' && tFillOpacity !== 1 ? ` fill-opacity="${tFillOpacity}"` : '';
+
+      if (glyphData) {
+        const mainStrokeAttr = boldStrokeWidth > 0
+          ? ` stroke="${tFill}" stroke-width="${boldStrokeWidth.toFixed(2)}" stroke-linejoin="round" paint-order="stroke fill"`
+          : '';
+        markup += `  <path d="${glyphData.d}" fill="${tFill}"${fgOpacAttr}${mainStrokeAttr}/>\n`;
+      } else {
+        markup += `  <text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tFill}"${fgOpacAttr} text-anchor="middle">${escapeXml(text)}</text>\n`;
+      }
+
+      return { defs, markup };
+    }
+
+    async function buildSvgSingle(text, w, h, fs, cleanFont, weight, style) {
+      const computedFs = computeUniformFontSize(
+        text, showBorder, w, h, w, h, fs,
+        cleanFont, weight, style
+      );
+
+      let pad = 4;
+      if (showBorder && shapeShadowEnabled.checked) {
+        const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+        const sBlur = parseInt(shapeShadowBlur.value, 10);
+        pad = Math.max(pad, Math.abs(sOff.x) + sBlur * 2 + 4, Math.abs(sOff.y) + sBlur * 2 + 4);
+      }
+      if (textShadowEnabled.checked) {
+        const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+        const tBlur = parseInt(textShadowBlur.value, 10);
+        pad = Math.max(pad, Math.abs(tOff.x) + tBlur * 2 + 4, Math.abs(tOff.y) + tBlur * 2 + 4);
+      }
+      pad = Math.ceil(pad);
+
+      const totalW = w + pad * 2;
+      const totalH = h + pad * 2;
+      const cx = totalW / 2;
+      const cy = totalH / 2;
+
+      const sBlur = parseInt(shapeShadowBlur.value, 10);
+      const tBlur = parseInt(textShadowBlur.value, 10);
+
+      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
+        rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
+    </filter>\n`;
+      }
+      if (textShadowEnabled.checked && tBlur > 0) {
+        rootDefs += `    <filter id="svgTextShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
+    </filter>\n`;
+      }
+
+      const res = await buildSvgCellMarkup(cx, cy, w, h, text, computedFs, cleanFont, weight, style);
+      rootDefs += res.defs;
+
+      return `<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">
+  <defs>
+${rootDefs}  </defs>
+${res.markup}</svg>`;
+    }
+
+    function escapeXml(s) {
+      return String(s).replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]));
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnPrint').addEventListener('click', async () => {
+      const origTitle = document.title;
+      const name = (isPaperMode && totalCells() > 1) ? makeSheetFileName() : makeFileName(constructLabel());
+      const pdfName = `num${name}`;
+      document.title = pdfName;
+
+      try { await document.fonts.ready; } catch (_) {}
+
+      const svg = await buildSvgForExport();
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+      const fmt = paperFormat === 'letter' ? 'letter' : 'A4';
+      const orient = isLandscape ? 'landscape' : 'portrait';
+
+      const svgW = (() => {
+        const m = svg.match(/<svg[^>]*\bwidth="([\d.]+)"/);
+        return m ? parseFloat(m[1]) : null;
+      })();
+      const svgH = (() => {
+        const m = svg.match(/<svg[^>]*\bheight="([\d.]+)"/);
+        return m ? parseFloat(m[1]) : null;
+      })();
+
+      const pageRule = isPaperMode
+        ? `@page { size: ${fmt} ${orient}; margin: 0; }`
+        : (svgW && svgH ? `@page { size: ${svgW}px ${svgH}px; margin: 0; }` : `@page { margin: 0; }`);
+
+      doc.open();
+      doc.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${pdfName}</title>
+<style>
+  ${pageRule}
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    width: 100%;
+    height: 100%;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+  }
+  @media print {
+    html, body { width: 100%; height: 100%; }
+    img { width: 100%; height: 100%; }
+  }
+</style>
+</head>
+<body><img src="${url}" alt=""></body>
+</html>`);
+      doc.close();
+
+      const cleanup = () => {
+        try { iframe.parentNode && iframe.parentNode.removeChild(iframe); } catch (_) {}
+        try { URL.revokeObjectURL(url); } catch (_) {}
+        document.title = origTitle;
+      };
+
+      const triggerPrint = () => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (_) {}
+        setTimeout(cleanup, 800);
+      };
+
+      const img = doc.querySelector('img');
+      if (img) {
+        if (img.decode) {
+          img.decode().then(triggerPrint).catch(triggerPrint);
+        } else if (img.complete) {
+          triggerPrint();
+        } else {
+          img.onload = triggerPrint;
+          img.onerror = triggerPrint;
+        }
+      } else {
+        triggerPrint();
+      }
+    });
+
+    document.documentElement.style.setProperty('--active-font', fontSelect.value);
+    applyStyleButtonAvailability();
+    document.fonts.ready.then(async () => {
+	  try { await preloadGoogleFontVariants(); } catch (_) {}
+	  render();
+	});
+    render();
+  </script>
+</body>
+</html>
