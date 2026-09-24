@@ -1243,7 +1243,7 @@
         }
 
         return {
-          d: shifted.toPathData(2),
+          d: shifted.toPathData(1),
           cx: _dx,
           cy: _dy,
           pw: Math.max(1, pw),
@@ -2668,7 +2668,7 @@
     let svgGradCounter = 0;
     function nextSvgGradId(prefix) { return `${prefix}_${++svgGradCounter}`; }
 
-	const GOOGLE_FONTS_SVG_STYLE = `    <style>
+    const GOOGLE_FONTS_SVG_STYLE = `    <style>
       @import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Arimo:ital,wght@0,400;0,700;1,400;1,700&amp;family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&amp;family=Fira+Sans:ital,wght@0,400;0,700;1,400;1,700&amp;family=Gelasio:ital,wght@0,400;0,700;1,400;1,700&amp;family=Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700&amp;family=Oswald:wght@400;700&amp;family=Roboto:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
     </style>\n`;
 
@@ -2676,7 +2676,10 @@
       const fs = parseInt(sliderSize.value, 10);
       const activeFontRaw = getComputedStyle(document.documentElement).getPropertyValue('--active-font');
       const cleanFont = getCleanFontFamily(activeFontRaw);
+      
+      // Ensure local PC font buffer is fully loaded and awaited
       await _ensureLocalFontBuffer(cleanFont);
+
       const weight = isBold ? 'bold' : 'normal';
       const style = isItalic ? 'italic' : 'normal';
       const w = parseInt(sliderWidth.value, 10);
@@ -2703,15 +2706,20 @@
       const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      // Always include GOOGLE_FONTS_SVG_STYLE to keep Illustrator's SVG filter pipeline engaged
+      // Always include GOOGLE_FONTS_SVG_STYLE. Use explicit pixel filter regions so Illustrator
+      // cannot misparse the filter bounds based on the element's bounding box.
       let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      const _sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+      const _tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+      const _sMargin = Math.abs(_sOff.x) + sBlur * 2 + Math.abs(_sOff.y) + sBlur * 2 + 40;
+      const _tMargin = Math.abs(_tOff.x) + tBlur * 2 + Math.abs(_tOff.y) + tBlur * 2 + 40;
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
-        rootDefs += `    <filter id="svgShapeShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+        rootDefs += `    <filter id="svgShapeShadow" filterUnits="userSpaceOnUse" x="${- _sMargin}" y="${- _sMargin}" width="${containerW + _sMargin * 2}" height="${containerH + _sMargin * 2}">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
       if (textShadowEnabled.checked && tBlur > 0) {
-        rootDefs += `    <filter id="svgTextShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+        rootDefs += `    <filter id="svgTextShadow" filterUnits="userSpaceOnUse" x="${- _tMargin}" y="${- _tMargin}" width="${containerW + _tMargin * 2}" height="${containerH + _tMargin * 2}">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
@@ -2737,7 +2745,7 @@
       }
 
       return `<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${containerW}" height="${containerH}" viewBox="0 0 ${containerW} ${containerH}">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${containerW}" height="${containerH}" viewBox="0 0 ${containerW} ${containerH}">
   <defs>
 ${rootDefs}  </defs>
   <rect width="${containerW}" height="${containerH}" fill="#ffffff"/>
@@ -2749,8 +2757,87 @@ ${cellsMarkup}</svg>`;
       const name = isPaperMode && totalCells() > 1 ? makeSheetFileName() : makeFileName(constructLabel());
       downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `num${name}.svg`);
     });
+	
+	    // Pre-renders a blurred shadow to a base64 PNG for Adobe Illustrator compatibility.
+    // PC-scanned fonts cause Illustrator to silently drop SVG feGaussianBlur on text paths,
+    // so we bake the blur into a raster image whenever the active font is a PC font.
+    function _renderBlurredShadowPNG(opts) {
+      // opts: { kind: 'shape'|'text', cw, ch, r, isRound,
+      //         text, fontSize, fontFamily, weight, style,
+      //         fill1, fill2, isGradient, gradAngle, alpha,
+      //         blurPx }
+      const {
+        kind, cw, ch, r, isRound,
+        text, fontSize, fontFamily, weight, style,
+        fill1, fill2, isGradient, gradAngle, alpha,
+        blurPx
+      } = opts;
 
-	async function buildSvgCellMarkup(cx, cy, cw, ch, text, fontSize, cleanFont, weight, style) {
+      // Generous padding so the blur never gets clipped by the canvas edge.
+      const pad = Math.ceil(blurPx * 3) + 20;
+      const canvasW = Math.ceil(cw + pad * 2);
+      const canvasH = Math.ceil(ch + pad * 2);
+      const tmp = document.createElement('canvas');
+      tmp.width = canvasW;
+      tmp.height = canvasH;
+      const tctx = tmp.getContext('2d');
+
+      const ccx = canvasW / 2;
+      const ccy = canvasH / 2;
+
+      // Build the fill style (solid or linear gradient)
+      let fillStyle;
+      if (isGradient) {
+        const rad = ((gradAngle - 90) * Math.PI) / 180;
+        const dx = Math.cos(rad), dy = Math.sin(rad);
+        const len = Math.abs((cw / 2) * dx) + Math.abs((ch / 2) * dy);
+        const g = tctx.createLinearGradient(
+          ccx - dx * len, ccy - dy * len,
+          ccx + dx * len, ccy + dy * len
+        );
+        g.addColorStop(0, hexToRgba(fill1, alpha));
+        g.addColorStop(1, hexToRgba(fill2, alpha));
+        fillStyle = g;
+      } else {
+        fillStyle = hexToRgba(fill1, alpha);
+      }
+
+      tctx.save();
+      if (blurPx > 0) tctx.filter = `blur(${blurPx}px)`;
+      tctx.fillStyle = fillStyle;
+
+      if (kind === 'shape') {
+        tctx.beginPath();
+        if (isRound) tctx.ellipse(ccx, ccy, cw / 2, ch / 2, 0, 0, Math.PI * 2);
+        else tctx.roundRect(ccx - cw / 2, ccy - ch / 2, cw, ch, r);
+        tctx.fill();
+      } else {
+        tctx.font = `${style === 'italic' ? 'italic ' : ''}${weight === 'bold' ? 'bold ' : ''}${fontSize}px ${fontFamily}`;
+        tctx.textAlign = 'center';
+        tctx.textBaseline = 'alphabetic';
+
+        // Match the visual-centering used by _textToSvgPath:
+        // measure the actual ink bounding box and shift the fill so its
+        // visual center lands at (ccx, ccy) — same anchor the SVG path uses.
+        const m = tctx.measureText(text);
+        const ascent  = m.actualBoundingBoxAscent  || fontSize * 0.75;
+        const descent = m.actualBoundingBoxDescent || fontSize * 0.25;
+        const visualCenterY = (ascent - descent) / 2;  // +up from baseline
+        tctx.fillText(text, ccx, ccy + visualCenterY);
+      }
+      tctx.restore();
+
+      return {
+        dataUrl: tmp.toDataURL('image/png'),
+        width: canvasW,
+        height: canvasH,
+        // Offsets to add to the shadow's (cx, cy) when placing the <image>
+        offsetX: -ccx,
+        offsetY: -ccy
+      };
+    }
+
+    async function buildSvgCellMarkup(cx, cy, cw, ch, text, fontSize, cleanFont, weight, style) {
       const r = parseInt(sliderRoundness.value, 10);
       const bg  = getHexAndAlpha(bgColor1.value, bgOpacity.value);
       const bg2 = getHexAndAlpha(bgColor2.value, bgOpacity.value);
@@ -2760,6 +2847,7 @@ ${cellsMarkup}</svg>`;
       const bdr2 = getHexAndAlpha(borderColor2.value, borderOpacity.value);
       const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
+	  const _useRasterShadow = !GOOGLE_FONT_TTF_URLS[cleanFont];
 
       const _mCanvas = document.createElement('canvas');
       const _mCtx = _mCanvas.getContext('2d');
@@ -2768,14 +2856,11 @@ ${cellsMarkup}</svg>`;
       const gradW = Math.max(1, _m.width);
       const gradH = fontSize * 1.2;
 
-	  // 1. Resolve font object up front
       const fontObj = await _getFontForExport(cleanFont, weight, style);
       const isGoogle = !!GOOGLE_FONT_TTF_URLS[cleanFont];
       const hasNativeBold = isGoogle ? true : !!(_uploadedFontBuffers[cleanFont]?.bold || _uploadedFontBuffers[cleanFont]?.boldItalic);
-      
-      // Accurately detect variable fonts from fvar table
       const isVarFont = !isGoogle && !!(fontObj && fontObj.tables && fontObj.tables.fvar);
-      
+
       const boldStrokeWidth = (!hasNativeBold && weight === 'bold') ? fontSize * 0.03 : 0;
       const glyphData = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx, cy, weight, style, isVarFont) : null;
 
@@ -2788,22 +2873,40 @@ ${cellsMarkup}</svg>`;
       // --- SHAPE SHADOW ---
       if (showBorder && shapeShadowEnabled.checked) {
         const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
-        const ss1 = getHexAndAlpha(shapeShadowColor1.value, shapeShadowOpacity.value);
-        const ss2 = getHexAndAlpha(shapeShadowColor2.value, shapeShadowOpacity.value);
-        let sFill = ss1.hex;
-        let sFillOpacity = ss1.alpha;
-        if (shapeShadowIsGradient) {
-          const id = nextSvgGradId('shapeShadowGrad');
-          const c = cssGradientCoords(cx + sOff.x - cw / 2, cy + sOff.y - ch / 2, cw, ch, parseInt(shapeShadowGradAngle.value, 10));
-          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ss1.hex, ss1.alpha, ss2.hex, ss2.alpha) + '\n';
-          sFill = `url(#${id})`;
-          sFillOpacity = '1';
-        }
-        const shapeFilterAttr = sBlur > 0 ? ' filter="url(#svgShapeShadow)"' : '';
-        if (isRound) {
-          markup += `  <ellipse cx="${(cx + sOff.x).toFixed(2)}" cy="${(cy + sOff.y).toFixed(2)}" rx="${(cw / 2).toFixed(2)}" ry="${(ch / 2).toFixed(2)}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+
+        if (_useRasterShadow && sBlur > 0) {
+          // Rasterized shadow path — works in Illustrator for PC fonts.
+          const png = _renderBlurredShadowPNG({
+            kind: 'shape', cw, ch, r, isRound,
+            fill1: shapeShadowColor1.value,
+            fill2: shapeShadowColor2.value,
+            isGradient: shapeShadowIsGradient,
+            gradAngle: parseInt(shapeShadowGradAngle.value, 10),
+            alpha: parseInt(shapeShadowOpacity.value, 10) / 100,
+            blurPx: sBlur
+          });
+          const imgX = (cx + sOff.x + png.offsetX).toFixed(2);
+          const imgY = (cy + sOff.y + png.offsetY).toFixed(2);
+          markup += `  <image xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
         } else {
-          markup += `  <rect x="${(cx - cw / 2 + sOff.x).toFixed(2)}" y="${(cy - ch / 2 + sOff.y).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" rx="${r}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+          // Vector shadow (Google fonts or blur=0) — keeps the export lean.
+          const ss1 = getHexAndAlpha(shapeShadowColor1.value, shapeShadowOpacity.value);
+          const ss2 = getHexAndAlpha(shapeShadowColor2.value, shapeShadowOpacity.value);
+          let sFill = ss1.hex;
+          let sFillOpacity = ss1.alpha;
+          if (shapeShadowIsGradient) {
+            const id = nextSvgGradId('shapeShadowGrad');
+            const c = cssGradientCoords(cx + sOff.x - cw / 2, cy + sOff.y - ch / 2, cw, ch, parseInt(shapeShadowGradAngle.value, 10));
+            defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ss1.hex, ss1.alpha, ss2.hex, ss2.alpha) + '\n';
+            sFill = `url(#${id})`;
+            sFillOpacity = '1';
+          }
+          const shapeFilterAttr = sBlur > 0 ? ' filter="url(#svgShapeShadow)"' : '';
+          if (isRound) {
+            markup += `  <ellipse cx="${(cx + sOff.x).toFixed(2)}" cy="${(cy + sOff.y).toFixed(2)}" rx="${(cw / 2).toFixed(2)}" ry="${(ch / 2).toFixed(2)}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+          } else {
+            markup += `  <rect x="${(cx - cw / 2 + sOff.x).toFixed(2)}" y="${(cy - ch / 2 + sOff.y).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" rx="${r}" fill="${sFill}" fill-opacity="${sFillOpacity}"${shapeFilterAttr}/>\n`;
+          }
         }
       }
 
@@ -2842,40 +2945,62 @@ ${cellsMarkup}</svg>`;
         markup += `  <rect x="${(cx - cw / 2).toFixed(2)}" y="${(cy - ch / 2).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" fill="${bgFill}" fill-opacity="${bgFillOpacity}"/>\n`;
       }
 
-      // --- TEXT SHADOW ---
+      // --- TEXT SHADOW (rendered FIRST so it sits behind main text) ---
       if (textShadowEnabled.checked) {
         const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
-        const ts1 = getHexAndAlpha(textShadowColor1.value, textShadowOpacity.value);
-        const ts2 = getHexAndAlpha(textShadowColor2.value, textShadowOpacity.value);
-        let tsFill = ts1.hex;
-        let tsFillOpacity = ts1.alpha;
 
-        if (textShadowIsGradient) {
-          const id = nextSvgGradId('txtShadowGrad');
-          const c = cssGradientCoords(cx + tOff.x - gradW / 2, cy + tOff.y - gradH / 2, gradW, gradH, parseInt(textShadowGradAngle.value, 10));
-          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ts1.hex, ts1.alpha, ts2.hex, ts2.alpha) + '\n';
-          tsFill = `url(#${id})`;
-          tsFillOpacity = '1';
-        }
-
-        const textFilterAttr = tBlur > 0 ? ' filter="url(#svgTextShadow)"' : '';
-        const opacAttr = tsFillOpacity !== '1.00' && tsFillOpacity !== 1 ? ` fill-opacity="${tsFillOpacity}"` : '';
-
-        const shadowGlyph = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx + tOff.x, cy + tOff.y, weight, style, isVarFont) : null;
-
-        if (shadowGlyph) {
-          const shadowStrokeAttr = boldStrokeWidth > 0
-            ? ` stroke="${tsFill}" stroke-width="${boldStrokeWidth.toFixed(2)}" stroke-linejoin="round" paint-order="stroke fill"`
-            : '';
-          
-          // Apply blur filter directly to the converted OpenType path geometry
-          markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}${textFilterAttr}/>\n`;
+        if (_useRasterShadow && tBlur > 0) {
+          // Rasterized shadow path — works in Illustrator for PC fonts.
+          const png = _renderBlurredShadowPNG({
+            kind: 'text',
+            cw: gradW, ch: gradH, r: 0, isRound: false,
+            text, fontSize, fontFamily: cleanFont, weight, style,
+            fill1: textShadowColor1.value,
+            fill2: textShadowColor2.value,
+            isGradient: textShadowIsGradient,
+            gradAngle: parseInt(textShadowGradAngle.value, 10),
+            alpha: parseInt(textShadowOpacity.value, 10) / 100,
+            blurPx: tBlur
+          });
+          const imgX = (cx + tOff.x + png.offsetX).toFixed(2);
+          const imgY = (cy + tOff.y + png.offsetY).toFixed(2);
+          markup += `  <image xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
         } else {
-          markup += `  <text x="${(cx + tOff.x).toFixed(2)}" y="${(cy + tOff.y).toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tsFill}"${opacAttr} text-anchor="middle"${textFilterAttr}>${escapeXml(text)}</text>\n`;
+          // Vector shadow (Google fonts or blur=0)
+          const ts1 = getHexAndAlpha(textShadowColor1.value, textShadowOpacity.value);
+          const ts2 = getHexAndAlpha(textShadowColor2.value, textShadowOpacity.value);
+          let tsFill = ts1.hex;
+          let tsFillOpacity = ts1.alpha;
+
+          if (textShadowIsGradient) {
+            const id = nextSvgGradId('txtShadowGrad');
+            const c = cssGradientCoords(cx + tOff.x - gradW / 2, cy + tOff.y - gradH / 2, gradW, gradH, parseInt(textShadowGradAngle.value, 10));
+            defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ts1.hex, ts1.alpha, ts2.hex, ts2.alpha) + '\n';
+            tsFill = `url(#${id})`;
+            tsFillOpacity = '1';
+          }
+
+          const textFilterAttr = tBlur > 0 ? ' filter="url(#svgTextShadow)"' : '';
+          const opacAttr = (tsFillOpacity !== '1.00' && tsFillOpacity !== 1) ? ` fill-opacity="${tsFillOpacity}"` : '';
+
+          const shadowGlyph = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx + tOff.x, cy + tOff.y, weight, style, isVarFont) : null;
+
+          if (shadowGlyph) {
+            const shadowStrokeAttr = boldStrokeWidth > 0
+              ? ` stroke="${tsFill}" stroke-width="${boldStrokeWidth.toFixed(2)}" stroke-linejoin="round" paint-order="stroke fill"`
+              : '';
+            if (tBlur > 0) {
+              markup += `  <g${textFilterAttr}>\n    <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n  </g>\n`;
+            } else {
+              markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n`;
+            }
+          } else {
+            markup += `  <text x="${(cx + tOff.x).toFixed(2)}" y="${(cy + tOff.y).toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tsFill}"${opacAttr} text-anchor="middle"${textFilterAttr}>${escapeXml(text)}</text>\n`;
+          }
         }
       }
 
-      // --- MAIN TEXT ---
+      // --- MAIN TEXT (always rendered, outside shadow block) ---
       let tFill = txt.hex;
       let tFillOpacity = txt.alpha;
       if (textIsGradient) {
@@ -2886,7 +3011,7 @@ ${cellsMarkup}</svg>`;
         tFillOpacity = '1';
       }
 
-      const fgOpacAttr = tFillOpacity !== '1.00' && tFillOpacity !== 1 ? ` fill-opacity="${tFillOpacity}"` : '';
+      const fgOpacAttr = (tFillOpacity !== '1.00' && tFillOpacity !== 1) ? ` fill-opacity="${tFillOpacity}"` : '';
 
       if (glyphData) {
         const mainStrokeAttr = boldStrokeWidth > 0
@@ -2924,18 +3049,21 @@ ${cellsMarkup}</svg>`;
       const cx = totalW / 2;
       const cy = totalH / 2;
 
-	  const sBlur = parseInt(shapeShadowBlur.value, 10);
+      const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      // Always include GOOGLE_FONTS_SVG_STYLE to keep Illustrator's SVG filter pipeline engaged
       let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      const _sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+      const _tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+      const _sMargin = Math.abs(_sOff.x) + sBlur * 2 + Math.abs(_sOff.y) + sBlur * 2 + 40;
+      const _tMargin = Math.abs(_tOff.x) + tBlur * 2 + Math.abs(_tOff.y) + tBlur * 2 + 40;
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
-        rootDefs += `    <filter id="svgShapeShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+        rootDefs += `    <filter id="svgShapeShadow" filterUnits="userSpaceOnUse" x="${- _sMargin}" y="${- _sMargin}" width="${totalW + _sMargin * 2}" height="${totalH + _sMargin * 2}">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
       if (textShadowEnabled.checked && tBlur > 0) {
-        rootDefs += `    <filter id="svgTextShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+        rootDefs += `    <filter id="svgTextShadow" filterUnits="userSpaceOnUse" x="${- _tMargin}" y="${- _tMargin}" width="${totalW + _tMargin * 2}" height="${totalH + _tMargin * 2}">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
@@ -2944,7 +3072,7 @@ ${cellsMarkup}</svg>`;
       rootDefs += res.defs;
 
       return `<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">
   <defs>
 ${rootDefs}  </defs>
 ${res.markup}</svg>`;
