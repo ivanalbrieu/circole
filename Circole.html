@@ -2873,6 +2873,7 @@ ${cellsMarkup}</svg>`;
         } else {
           markup += `  <text x="${(cx + tOff.x).toFixed(2)}" y="${(cy + tOff.y).toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tsFill}"${opacAttr} text-anchor="middle"${textFilterAttr}>${escapeXml(text)}</text>\n`;
         }
+      }
 
       // --- MAIN TEXT ---
       let tFill = txt.hex;
