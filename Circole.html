@@ -2703,18 +2703,15 @@
       const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      // Only inject Google Fonts @import when a Google Font is active
-      // Illustrator requires a <style> element in <defs> to activate its modern SVG filter parser
-      let rootDefs = GOOGLE_FONT_TTF_URLS[cleanFont] 
-        ? GOOGLE_FONTS_SVG_STYLE 
-        : '    <style type="text/css">/* Circole Vector Engine */</style>\n';
+      // Always include GOOGLE_FONTS_SVG_STYLE to keep Illustrator's SVG filter pipeline engaged
+      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
-        rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
+        rootDefs += `    <filter id="svgShapeShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
       if (textShadowEnabled.checked && tBlur > 0) {
-        rootDefs += `    <filter id="svgTextShadow" x="-20%" y="-20%" width="140%" height="140%">
+        rootDefs += `    <filter id="svgTextShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
@@ -2871,15 +2868,11 @@ ${cellsMarkup}</svg>`;
             ? ` stroke="${tsFill}" stroke-width="${boldStrokeWidth.toFixed(2)}" stroke-linejoin="round" paint-order="stroke fill"`
             : '';
           
-          if (tBlur > 0) {
-            markup += `  <g${textFilterAttr}>\n    <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n  </g>\n`;
-          } else {
-            markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n`;
-          }
+          // Apply blur filter directly to the converted OpenType path geometry
+          markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}${textFilterAttr}/>\n`;
         } else {
           markup += `  <text x="${(cx + tOff.x).toFixed(2)}" y="${(cy + tOff.y).toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tsFill}"${opacAttr} text-anchor="middle"${textFilterAttr}>${escapeXml(text)}</text>\n`;
         }
-      }
 
       // --- MAIN TEXT ---
       let tFill = txt.hex;
@@ -2933,18 +2926,15 @@ ${cellsMarkup}</svg>`;
 	  const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      // Only inject Google Fonts @import when a Google Font is active
-      // Illustrator requires a <style> element in <defs> to activate its modern SVG filter parser
-      let rootDefs = GOOGLE_FONT_TTF_URLS[cleanFont] 
-        ? GOOGLE_FONTS_SVG_STYLE 
-        : '    <style type="text/css">/* Circole Vector Engine */</style>\n';
+      // Always include GOOGLE_FONTS_SVG_STYLE to keep Illustrator's SVG filter pipeline engaged
+      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
-        rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
+        rootDefs += `    <filter id="svgShapeShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
       if (textShadowEnabled.checked && tBlur > 0) {
-        rootDefs += `    <filter id="svgTextShadow" x="-20%" y="-20%" width="140%" height="140%">
+        rootDefs += `    <filter id="svgTextShadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
