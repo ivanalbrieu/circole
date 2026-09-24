@@ -2703,7 +2703,8 @@
       const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      // Only inject Google Fonts @import when a Google Font is active
+      let rootDefs = GOOGLE_FONT_TTF_URLS[cleanFont] ? GOOGLE_FONTS_SVG_STYLE : '';
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
         rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
@@ -2767,14 +2768,16 @@ ${cellsMarkup}</svg>`;
       const gradW = Math.max(1, _m.width);
       const gradH = fontSize * 1.2;
 
-      const font = await _getFontForExport(cleanFont, weight, style);
+	  // 1. Resolve font object up front
+      const fontObj = await _getFontForExport(cleanFont, weight, style);
       const isGoogle = !!GOOGLE_FONT_TTF_URLS[cleanFont];
-      const isVarFont = !isGoogle && _variableFonts.has(cleanFont);
       const hasNativeBold = isGoogle ? true : !!(_uploadedFontBuffers[cleanFont]?.bold || _uploadedFontBuffers[cleanFont]?.boldItalic);
       
-      // Zero stroke for Google Fonts and fonts with native bold; faux stroke only for single-face variable fonts
+      // Accurately detect variable fonts from fvar table
+      const isVarFont = !isGoogle && !!(fontObj && fontObj.tables && fontObj.tables.fvar);
+      
       const boldStrokeWidth = (!hasNativeBold && weight === 'bold') ? fontSize * 0.03 : 0;
-      const glyphData = font ? _textToSvgPath(font, text, fontSize, cx, cy, weight, style, isVarFont) : null;
+      const glyphData = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx, cy, weight, style, isVarFont) : null;
 
       const weightNum = (weight === 'bold' || weight === '700') ? '700' : '400';
       const synthStyle = isVarFont ? 'font-synthesis: weight style;' : 'font-synthesis: none;';
@@ -2858,13 +2861,7 @@ ${cellsMarkup}</svg>`;
         const textFilterAttr = tBlur > 0 ? ' filter="url(#svgTextShadow)"' : '';
         const opacAttr = tsFillOpacity !== '1.00' && tsFillOpacity !== 1 ? ` fill-opacity="${tsFillOpacity}"` : '';
 
-        // Guarantee font is fully loaded for PC scanned fonts before building shadow path
-        let activeFontObj = font;
-        if (!activeFontObj) {
-          activeFontObj = await _getFontForExport(cleanFont, weight, style);
-        }
-
-        const shadowGlyph = activeFontObj ? _textToSvgPath(activeFontObj, text, fontSize, cx + tOff.x, cy + tOff.y, weight, style, isVarFont) : null;
+        const shadowGlyph = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx + tOff.x, cy + tOff.y, weight, style, isVarFont) : null;
 
         if (shadowGlyph) {
           const shadowStrokeAttr = boldStrokeWidth > 0
@@ -2876,6 +2873,8 @@ ${cellsMarkup}</svg>`;
           } else {
             markup += `  <path d="${shadowGlyph.d}" fill="${tsFill}"${opacAttr}${shadowStrokeAttr}/>\n`;
           }
+        } else {
+          markup += `  <text x="${(cx + tOff.x).toFixed(2)}" y="${(cy + tOff.y).toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}', sans-serif; font-size: ${fontSize}px; font-weight: ${weightNum}; font-style: ${style}; ${synthStyle}" fill="${tsFill}"${opacAttr} text-anchor="middle"${textFilterAttr}>${escapeXml(text)}</text>\n`;
         }
       }
 
@@ -2928,10 +2927,11 @@ ${cellsMarkup}</svg>`;
       const cx = totalW / 2;
       const cy = totalH / 2;
 
-      const sBlur = parseInt(shapeShadowBlur.value, 10);
+	  const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
 
-      let rootDefs = GOOGLE_FONTS_SVG_STYLE;
+      // Only inject Google Fonts @import when a Google Font is active
+      let rootDefs = GOOGLE_FONT_TTF_URLS[cleanFont] ? GOOGLE_FONTS_SVG_STYLE : '';
       if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
         rootDefs += `    <filter id="svgShapeShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
