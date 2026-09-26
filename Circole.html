@@ -66,7 +66,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.7</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.8</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button id="btnMobileHelp" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
@@ -117,7 +117,7 @@
             <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
           </g>
         </svg>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.7</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.8</span>
       </div>
       <div class="flex items-center gap-1">
         <button id="btnLoadSettings" title="Load Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
@@ -601,7 +601,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.7</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.8</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -705,7 +705,8 @@
         vecRomanOnly: "✓ Vector (roman only)",
         vecVariable: "✓ Vector (variable — faux styles)",
         liveText: "⚠ Live Text",
-        svgRasterShadowNote: "Note: SVG export with blur enabled uses embedded raster shadows."
+        svgRasterShadowNote: "Note: SVG export with blur enabled uses embedded raster shadows.",
+        alertError: "Please fix the errors in the number field before downloading."
       },
       es: {
         tabNumber: "Número y Etiqueta", tabShape: "Figura y Marco", tabCanvas: "Modo Papel",
@@ -746,7 +747,8 @@
         vecRomanOnly: "✓ Vector (solo romana)",
         vecVariable: "✓ Vector (variable — estilos simulados)",
         liveText: "⚠ Texto en vivo",
-        svgRasterShadowNote: "Nota: la exportación SVG con desenfoque activado usa sombras ráster incrustadas."
+        svgRasterShadowNote: "Nota: la exportación SVG con desenfoque activado usa sombras ráster incrustadas.",
+        alertError: "Por favor corrige los errores antes de descargar.",
       }
     };
 
@@ -802,7 +804,8 @@
     let gridCols = 1;
     let gridRows = 1;
     let activeCellIndex = 0;
-    let labelValues = ['0'];
+	let labelValues = ['0'];
+	let lastValidValues = ['0'];
     let lastPaperCellIndex = 0;
     let noActiveCell = false;
 
@@ -978,22 +981,25 @@
     }
     function totalCells() { return isPaperMode ? Math.max(1, gridCols * gridRows) : 1; }
     function ensureCellCapacity() {
-      const target = totalCells();
-      while (labelValues.length < target) labelValues.push('0');
-      if (activeCellIndex >= target) activeCellIndex = 0;
-    }
+	  const target = totalCells();
+	  while (labelValues.length < target) labelValues.push('0');
+	  while (lastValidValues.length < target) lastValidValues.push('0');
+	  if (activeCellIndex >= target) activeCellIndex = 0;
+	}
     function getActiveLabel() { return String(labelValues[activeCellIndex] ?? '0'); }
     function constructLabelFromNum(num) { return `${inputPrefix.value}${num}${inputSuffix.value}`; }
-    function constructLabel() { return constructLabelFromNum(getActiveLabel()); }
-    function longestSheetLabel() {
-      let longest = '';
-      const n = totalCells();
-      for (let i = 0; i < n; i++) {
-        const t = constructLabelFromNum(labelValues[i] ?? '0');
-        if (t.length > longest.length) longest = t;
-      }
-      return longest || constructLabelFromNum('0');
-    }
+    function constructLabel() { 
+	  return constructLabelFromNum(lastValidValues[activeCellIndex] ?? '0'); 
+	}
+	function longestSheetLabel() {
+	  let longest = '';
+	  const n = totalCells();
+	  for (let i = 0; i < n; i++) {
+		const t = constructLabelFromNum(lastValidValues[i] ?? '0');
+		if (t.length > longest.length) longest = t;
+	  }
+	  return longest || constructLabelFromNum('0');
+	}
     function computeShapeSize(w, h, cellW, cellH) {
       const innerPad = 0.86;
       const maxW = Math.max(20, cellW * innerPad);
@@ -1355,11 +1361,13 @@
     function snapshotState() {
       return {
         inputNum: inputNum.value,
+		labelValues: labelValues.slice(),
+        lastValidValues: lastValidValues.slice(),
         inputPrefix: inputPrefix.value, inputSuffix: inputSuffix.value,
         jumpStepSelect: jumpStepSelect.value,
         showBorder, isRound, isBold, isItalic,
         isPaperMode, paperFormat, isLandscape,
-        gridCols, gridRows, activeCellIndex, lastPaperCellIndex, noActiveCell, labelValues: labelValues.slice(),
+        gridCols, gridRows, activeCellIndex, lastPaperCellIndex, noActiveCell,
         sliderWidth: sliderWidth.value, sliderHeight: sliderHeight.value,
         sliderRoundness: sliderRoundness.value, sliderSize: sliderSize.value,
         bgIsGradient, bgColor1: bgColor1.value, bgColor2: bgColor2.value,
@@ -1384,18 +1392,18 @@
     function applyState(s) {
       historyLock = true;
       inputNum.value = s.inputNum;
+	  labelValues = s.labelValues.slice();
+      lastValidValues = s.lastValidValues ? s.lastValidValues.slice() : s.labelValues.slice();
       inputPrefix.value = s.inputPrefix; inputSuffix.value = s.inputSuffix;
       jumpStepSelect.value = s.jumpStepSelect;
       document.getElementById('btnBigMinus').textContent = `-${s.jumpStepSelect}`;
       document.getElementById('btnBigPlus').textContent = `+${s.jumpStepSelect}`;
-
       showBorder = s.showBorder; isRound = s.isRound;
       isBold = s.isBold; isItalic = s.isItalic;
       isPaperMode = s.isPaperMode; paperFormat = s.paperFormat; isLandscape = s.isLandscape;
       gridCols = s.gridCols; gridRows = s.gridRows; activeCellIndex = s.activeCellIndex;
       if (typeof s.lastPaperCellIndex === 'number') lastPaperCellIndex = s.lastPaperCellIndex;
       noActiveCell = !!s.noActiveCell;
-      labelValues = s.labelValues.slice();
       showBorder ? toggleBtn(btnBorderOn, btnBorderOff) : toggleBtn(btnBorderOff, btnBorderOn);
       isRound ? toggleBtn(btnShapeCircle, btnShapeSquare) : toggleBtn(btnShapeSquare, btnShapeCircle);
       isPaperMode ? toggleBtn(btnModePaper, btnModeFit) : toggleBtn(btnModeFit, btnModePaper);
@@ -1492,7 +1500,7 @@
       return base || 'label';
     }
     function makeSheetFileName() {
-      const parts = labelValues.map(v => constructLabelFromNum(v));
+      const parts = lastValidValues.map(v => constructLabelFromNum(v));
       let joined = parts.join('_');
       if (joined.length > 120) joined = joined.slice(0, 117) + '_etc';
       return makeFileName(joined);
@@ -1688,14 +1696,23 @@
       const cleaned = digits.replace(/^0+(?=\d)/, '');
       return (isNeg && cleaned !== '0') ? `-${cleaned}` : cleaned;
     }
-    inputNum.addEventListener('input', () => {
-      const orig = inputNum.value;
-      const clean = sanitizeNumber(orig);
-      if (orig !== clean) inputNum.value = clean;
-      noActiveCell = false;
-      labelValues[activeCellIndex] = inputNum.value.trim() || '0';
-      render();
-    });
+	inputNum.addEventListener('input', () => {
+	  const orig = inputNum.value;
+	  const clean = sanitizeNumber(orig);
+	  if (orig !== clean) inputNum.value = clean;
+	  noActiveCell = false;
+
+	  const raw = inputNum.value.trim();
+	  labelValues[activeCellIndex] = raw || '0';
+
+	  // Commit only valid integers. Empty string does NOT commit —
+	  // clearing the field must not blank the last known valid label.
+	  if (/^-?\d+$/.test(raw)) {
+		lastValidValues[activeCellIndex] = raw;
+	  }
+
+	  render();
+	});
     inputPrefix.addEventListener('input', render);
     inputSuffix.addEventListener('input', render);
 
@@ -1889,14 +1906,16 @@
       errorMsg.classList.add('hidden');
       return true;
     }
-    function adjust(delta) {
-      noActiveCell = false;
-      let cur = parseInt(labelValues[activeCellIndex], 10);
-      if (isNaN(cur)) cur = 0;
-      labelValues[activeCellIndex] = String(cur + delta);
-      inputNum.value = labelValues[activeCellIndex];
-      render();
-    }
+	function adjust(delta) {
+	  noActiveCell = false;
+	  let cur = parseInt(lastValidValues[activeCellIndex], 10);
+	  if (isNaN(cur)) cur = 0;
+	  const updated = String(cur + delta);
+	  labelValues[activeCellIndex] = updated;
+	  lastValidValues[activeCellIndex] = updated;
+	  inputNum.value = updated;
+	  render();
+	}
     document.getElementById('btnMinus').addEventListener('click', () => adjust(-1));
     document.getElementById('btnPlus').addEventListener('click', () => adjust(1));
     document.getElementById('btnBigMinus').addEventListener('click', () => adjust(-parseInt(jumpStepSelect.value, 10)));
@@ -1936,10 +1955,14 @@
       else if ((e.key === 'r' || e.key === 'R') && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); resetAll(); }
     });
     function syncInputToCell() {
-      inputNum.value = String(labelValues[activeCellIndex] ?? '0');
+      const v = String(lastValidValues[activeCellIndex] ?? '0');
+      inputNum.value = v;
+      // Discard any invalid intermediate state left behind on this cell.
+      labelValues[activeCellIndex] = v;
     }
     function resetAll() {
-      labelValues = ['0']; activeCellIndex = 0; lastPaperCellIndex = 0; noActiveCell = false; inputNum.value = '0';
+      labelValues = ['0']; lastValidValues = ['0'];
+      activeCellIndex = 0; lastPaperCellIndex = 0; noActiveCell = false; inputNum.value = '0';
       inputPrefix.value = ''; inputSuffix.value = '';
       sliderWidth.value = '340'; sliderHeight.value = '340'; sliderRoundness.value = '0'; sliderSize.value = '130';
       showBorder = true; toggleBtn(btnBorderOn, btnBorderOff);
@@ -1977,7 +2000,7 @@
       const cleanFontToSave = getCleanFontFamily(fontSelect.value);
       const settings = {
         version: 6,
-        labelValues: labelValues.slice(),
+        labelValues: lastValidValues.slice(),
         activeCellIndex, lastPaperCellIndex,
         inputPrefix: inputPrefix.value, inputSuffix: inputSuffix.value,
         jumpStepSelect: jumpStepSelect.value,
@@ -2028,6 +2051,7 @@
 
           if (Array.isArray(s.labelValues)) labelValues = s.labelValues.map(v => String(v));
           else labelValues = [String(s.inputNum ?? '0')];
+          lastValidValues = labelValues.slice();
           activeCellIndex = Math.min(Math.max(0, parseInt(s.activeCellIndex, 10) || 0), Math.max(0, labelValues.length - 1));
           if (typeof s.lastPaperCellIndex === 'number') lastPaperCellIndex = s.lastPaperCellIndex;
           else lastPaperCellIndex = activeCellIndex;
@@ -2140,7 +2164,7 @@
     });
 
     function render() {
-      if (validateInput()) { }
+      validateInput();
       ensureCellCapacity();
 
       const maxFs = showBorder ? FONT_SIZE_MAX_BORDER : FONT_SIZE_MAX_NO_BORDER;
@@ -2274,7 +2298,7 @@
         if (textShadowEnabled.checked) {
           const ts = document.createElement('div');
           ts.className = 'cell-text-shadow';
-          ts.textContent = constructLabelFromNum(labelValues[i] ?? '0');
+          ts.textContent = constructLabelFromNum(lastValidValues[i] ?? '0');
           ts.style.fontFamily = activeFont;
           ts.style.fontSize = uniformFontSize + 'px';
           ts.style.fontWeight = weight;
@@ -2298,7 +2322,7 @@
 
         const numEl = document.createElement('span');
         numEl.className = 'cell-number';
-        numEl.textContent = constructLabelFromNum(labelValues[i] ?? '0');
+        numEl.textContent = constructLabelFromNum(lastValidValues[i] ?? '0');
         numEl.style.fontFamily = activeFont;
         numEl.style.fontSize = uniformFontSize + 'px';
         numEl.style.fontWeight = weight;
@@ -2368,6 +2392,11 @@
     }
 
     document.getElementById('btnDownloadPNG').addEventListener('click', async () => {
+	  if (!validateInput()) {
+        alert(translations[currentLang].alertError || "Please fix the errors in the number field before downloading.");
+        return;
+      }
+	
       await document.fonts.ready;
       const fs = parseInt(sliderSize.value, 10);
       const activeFont = getCleanFontFamily(
@@ -2450,7 +2479,7 @@
         const cch = y1 - y0;
         const ccx = x0 + ccw / 2;
         const ccy = y0 + cch / 2;
-        const cellLabel = constructLabelFromNum(labelValues[i] ?? '0');
+	    const cellLabel = constructLabelFromNum(lastValidValues[i] ?? '0');
         const drawW = showBorder ? cw : ccw;
         const drawH = showBorder ? ch : cch;
         drawCellIntoContext(ctx, ccx, ccy, drawW, drawH, cellLabel, uniformFs, activeFont);
@@ -2813,7 +2842,7 @@
         const cch = y1 - y0;
         const ccx = x0 + ccw / 2;
         const ccy = y0 + cch / 2;
-        const label = constructLabelFromNum(labelValues[i] ?? '0');
+        const label = constructLabelFromNum(lastValidValues[i] ?? '0');
         const drawW = showBorder ? cw : ccw;
         const drawH = showBorder ? ch : cch;
 
@@ -2831,6 +2860,11 @@ ${cellsMarkup}</svg>`;
     }
 
     document.getElementById('btnDownloadSVG').addEventListener('click', async () => {
+	  if (!validateInput()) {
+        alert(translations[currentLang].alertError || "Please fix the errors in the number field before downloading.");
+        return;
+      }
+	
       const svg = await buildSvgForExport();
       const name = isPaperMode && totalCells() > 1 ? makeSheetFileName() : makeFileName(constructLabel());
       downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `num${name}.svg`);
@@ -3168,6 +3202,11 @@ ${res.markup}</svg>`;
     }
 
     document.getElementById('btnPrint').addEventListener('click', async () => {
+	  if (!validateInput()) {
+        alert(translations[currentLang].alertError || "Please fix the errors in the number field before downloading.");
+        return;
+      }
+	
       const origTitle = document.title;
       const name = (isPaperMode && totalCells() > 1) ? makeSheetFileName() : makeFileName(constructLabel());
       const pdfName = `num${name}`;
