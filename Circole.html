@@ -66,7 +66,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.6</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.7</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button id="btnMobileHelp" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
@@ -117,7 +117,7 @@
             <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
           </g>
         </svg>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.6</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.7</span>
       </div>
       <div class="flex items-center gap-1">
         <button id="btnLoadSettings" title="Load Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
@@ -493,6 +493,7 @@
                 </div>
                 <input type="range" id="textShadowAngle" min="0" max="360" value="135" class="w-full accent-sky-500" />
               </div>
+              <p id="lblSvgRasterShadowNote" class="text-[10px] text-amber-500 dark:text-amber-400 leading-snug pt-1"></p>
             </div>
           </div>
         </div>
@@ -600,7 +601,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.6</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.7</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -645,6 +646,25 @@
   <script>
     lucide.createIcons();
 
+    // Feature detection: old Safari silently ignores ctx.filter on canvas draws.
+    // If unsupported, we skip blur in canvas renders (preview still uses CSS filter).
+    const _supportsCanvasFilter = (() => {
+      try {
+		const c = document.createElement('canvas');
+		c.width = 2; c.height = 2;
+		const cx = c.getContext('2d');
+		cx.filter = 'blur(1px)';
+		if (cx.filter !== 'blur(1px)') return false;
+		cx.fillStyle = 'black';
+		cx.fillRect(0, 0, 1, 1);
+		const px = cx.getImageData(0, 0, 2, 2).data;
+		return px[3 * 4 + 3] > 0;
+      } catch (_) { return false; }
+    })();
+    if (!_supportsCanvasFilter) {
+      console.warn('[Circole] Canvas filter (blur) not supported by this browser. Exported PNG/SVG shadows will render without blur.');
+    }
+
     const translations = {
       en: {
         tabNumber: "Number & Label", tabShape: "Shape & Frame", tabCanvas: "Paper Mode",
@@ -684,7 +704,8 @@
         vecBoldItalicNA: "✓ Vector (bold, italic not available)",
         vecRomanOnly: "✓ Vector (roman only)",
         vecVariable: "✓ Vector (variable — faux styles)",
-        liveText: "⚠ Live Text"
+        liveText: "⚠ Live Text",
+        svgRasterShadowNote: "Note: SVG export with blur enabled uses embedded raster shadows."
       },
       es: {
         tabNumber: "Número y Etiqueta", tabShape: "Figura y Marco", tabCanvas: "Modo Papel",
@@ -711,7 +732,7 @@
         btnLoadedPrefix: "Cargadas", activeFontPrefix: "Activa:",
         loadLabel: "Cargar", saveLabel: "Guardar", titleLoad: "Cargar configuración", titleSave: "Guardar configuración",
         titleUndo: "Deshacer (Ctrl+Z)", titleRedo: "Rehacer (Ctrl+Shift+Z)",
-        maxLabel: "máx", fitLabel: "ajust",
+        maxLabel: "máx", fitLabel: "ajuste",
         paperLetter: "Carta (EE.UU.)",
         helpTitle: "Acerca de y Ayuda",
         helpAppDesc: "Un generador de etiquetas por lotes basado en web para diseños precisos, degradados personalizados, sombras e impresión de múltiples celdas.",
@@ -724,7 +745,8 @@
         vecBoldItalicNA: "✓ Vector (negrita, cursiva no disponible)",
         vecRomanOnly: "✓ Vector (solo romana)",
         vecVariable: "✓ Vector (variable — estilos simulados)",
-        liveText: "⚠ Texto en vivo"
+        liveText: "⚠ Texto en vivo",
+        svgRasterShadowNote: "Nota: la exportación SVG con desenfoque activado usa sombras ráster incrustadas."
       }
     };
 
@@ -1085,7 +1107,7 @@
 
         const url = GOOGLE_FONT_TTF_URLS[family][urlKey] || GOOGLE_FONT_TTF_URLS[family].normal;
         try {
-          const res = await fetch(url, { cache: 'no-store' });
+          const res = await fetch(url);
           if (!res.ok) throw new Error('CDN fetch error ' + res.status);
           const buf = await res.arrayBuffer();
           const font = opentype.parse(buf);
@@ -1170,31 +1192,7 @@
       } catch (_) {}
     }
 	
-	    let _fontPreloadPromise = null;
-    function preloadGoogleFontVariants() {
-      if (_fontPreloadPromise) return _fontPreloadPromise;
-      const jobs = [];
-      for (const [family, urls] of Object.entries(GOOGLE_FONT_TTF_URLS)) {
-        for (const [variantKey, url] of Object.entries(urls)) {
-          const isBoldVariant   = variantKey === 'bold' || variantKey === 'boldItalic';
-          const isItalicVariant = variantKey === 'italic' || variantKey === 'boldItalic';
-          const cacheKey = `${family}::${isBoldVariant ? 'bold' : 'normal'}::${isItalicVariant ? 'italic' : 'normal'}`;
-          if (_fontCache.has(cacheKey)) continue;
-          jobs.push((async () => {
-            try {
-              const res = await fetch(url, { cache: 'no-store' });
-              if (!res.ok) return;
-              const buf = await res.arrayBuffer();
-              _fontCache.set(cacheKey, opentype.parse(buf));
-            } catch (_) {}
-          })());
-        }
-      }
-      _fontPreloadPromise = Promise.all(jobs);
-      return _fontPreloadPromise;
-    }
-
-    function _textToSvgPath(font, text, fontSize, dx, dy, weight, style, isVariable) {
+    function _textToSvgPath(font, text, fontSize, dx, dy, weight, style, fauxItalicSkew) {
       try {
         const _dx = dx || 0;
         const _dy = dy || 0;
@@ -1209,8 +1207,8 @@
         const shiftX = _dx - bCx;
         const shiftY = _dy - bCy;
 
-        // Strict variable-font faux-italic skew factor (≈12°)
-        const skew = (isVariable === true && style === 'italic') ? 0.21 : 0;
+        // Faux-italic skew factor (≈12°) — applied only when requested by caller
+        const skew = (fauxItalicSkew === true && style === 'italic') ? 0.21 : 0;
 
         const shifted = new opentype.Path();
         const fx = (x, y) => (x + shiftX) - skew * ((y + shiftY) - _dy);
@@ -1252,24 +1250,6 @@
       } catch (_) {
         return null;
       }
-    }
-	
-    // For variable fonts, opentype.js only gives us the default instance.
-    // We approximate bold via stroke and italic via a horizontal skew, baked
-    // directly into the path coordinates (no transform attribute — Chromium-safe).
-    function _applyVariableFontStyling(pathData, fontSize, weight, style, isVariable) {
-      if (!isVariable || !pathData) return { d: pathData, strokeWidth: 0 };
-      let d = pathData;
-
-      // Italic: skew x by +x' = x - 0.21 * y (approx 12° slant).
-      if (style === 'italic') {
-        d = d.replace(/([MmLlCcSsQqTt])|(-?\d+(?:\.\d+)?)/g, (m, cmd) => cmd ? cmd : m);
-        // Easier: use opentype's Path rebuild via a translation-style pass below.
-        // We do a proper pass in _textToSvgPath instead; here we only handle bold stroke.
-      }
-
-      const strokeWidth = (weight === 'bold') ? fontSize * 0.045 : 0;
-      return { d, strokeWidth };
     }
 	
     function updateVectorIndicator(cleanFont) {
@@ -1668,8 +1648,9 @@
       document.getElementById('lblTextShadowBlur').textContent = t.blur;
       document.getElementById('lblShapeShadowAngle').textContent = t.angle;
       document.getElementById('lblTextShadowAngle').textContent = t.angle;
+	  document.getElementById('lblSvgRasterShadowNote').textContent = t.svgRasterShadowNote || '';
       btnShapeShadowSolid.textContent = t.solid; btnShapeShadowGrad.textContent = t.gradient;
-      btnTextShadowSolid.textContent = t.solid; btnTextGrad.textContent = t.gradient;
+      btnTextShadowSolid.textContent = t.solid; btnTextShadowGrad.textContent = t.gradient;
       document.getElementById('btnDownloadPNG').textContent = t.downloadPNG;
       document.getElementById('btnDownloadSVG').textContent = t.downloadSVG;
       document.getElementById('btnPrint').textContent = t.printPDF;
@@ -1822,13 +1803,13 @@
 
     let customFontCount = 0;
     fontFileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0]; if (!file) return;
-      if (file.name.toLowerCase().endsWith('.woff2')) {
-        alert(translations[currentLang].errFontLoad);
-        fontFileInput.value = '';
-        return;
-      }
-      const fontName = `UserFont_${++customFontCount}`;
+	  const file = e.target.files[0]; if (!file) return;
+	  if (file.name.toLowerCase().endsWith('.woff2')) {
+		alert(translations[currentLang].errFontLoad);
+		fontFileInput.value = '';
+		return;
+	  }
+	  const fontName = `UserFont_${++customFontCount}`;
       const reader = new FileReader();
       reader.onload = async (ev) => {
         try {
@@ -2103,8 +2084,18 @@
 			  fontSelect.value = "'Arimo', Arial, sans-serif";
 			}
 			document.documentElement.style.setProperty('--active-font', fontSelect.value);
+
+			// Restore variable-font state if the loaded font buffer is already available
+			const loadedFont = getCleanFontFamily(fontSelect.value);
+			if (loadedFont && _uploadedFontBuffers[loadedFont] && _uploadedFontBuffers[loadedFont].normal) {
+			  try {
+				const parsed = opentype.parse(_uploadedFontBuffers[loadedFont].normal);
+				if (parsed && parsed.tables && parsed.tables.fvar) {
+				  _variableFonts.add(loadedFont);
+				}
+			  } catch (_) {}
+			}
 		  }
-	  
           if (s.shapeShadowEnabled !== undefined) shapeShadowEnabled.checked = s.shapeShadowEnabled;
           if (s.shapeShadowIsGradient !== undefined) { shapeShadowIsGradient = s.shapeShadowIsGradient; shapeShadowIsGradient ? btnShapeShadowGrad.click() : btnShapeShadowSolid.click(); }
           if (s.shapeShadowColor1) shapeShadowColor1.value = s.shapeShadowColor1;
@@ -2496,18 +2487,40 @@
         const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value,10), parseInt(shapeShadowAngle.value,10));
         const sBlur = parseInt(shapeShadowBlur.value,10);
         const sAlpha = parseInt(shapeShadowOpacity.value,10) / 100;
-        ctx.save();
-        if (sBlur > 0) ctx.filter = `blur(${sBlur}px)`;
-        let fill;
+        // Draw the shadow on a scratch canvas at full opacity, blur, then fade uniformly
+        // so PNG export matches SVG export and the CSS preview (destination-in fade).
+        const sPad = Math.ceil(sBlur * 3) + 20;
+        const sScratchW = Math.ceil(cw + sPad * 2);
+        const sScratchH = Math.ceil(ch + sPad * 2);
+        const sScratch = document.createElement('canvas');
+        sScratch.width = sScratchW; sScratch.height = sScratchH;
+        const sctx = sScratch.getContext('2d');
+        const scx = sScratchW / 2, scy = sScratchH / 2;
+        let sFill;
         if (shapeShadowIsGradient) {
-          fill = cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(shapeShadowGradAngle.value,10),
-            hexToRgba(shapeShadowColor1.value, sAlpha), hexToRgba(shapeShadowColor2.value, sAlpha));
-        } else fill = hexToRgba(shapeShadowColor1.value, sAlpha);
-        ctx.translate(sOff.x, sOff.y);
-        ctx.fillStyle = fill;
-        drawShapePath(cx, cy, cw, ch);
-        ctx.fill();
-        ctx.restore();
+          const rad = ((parseInt(shapeShadowGradAngle.value,10) - 90) * Math.PI) / 180;
+          const dx = Math.cos(rad), dy = Math.sin(rad);
+          const len = Math.abs((cw / 2) * dx) + Math.abs((ch / 2) * dy);
+          const g = sctx.createLinearGradient(scx - dx * len, scy - dy * len, scx + dx * len, scy + dy * len);
+          g.addColorStop(0, hexToRgba(shapeShadowColor1.value, 1));
+          g.addColorStop(1, hexToRgba(shapeShadowColor2.value, 1));
+          sFill = g;
+        } else sFill = hexToRgba(shapeShadowColor1.value, 1);
+        sctx.save();
+        if (sBlur > 0 && _supportsCanvasFilter) sctx.filter = `blur(${sBlur}px)`;
+        sctx.fillStyle = sFill;
+        sctx.beginPath();
+        if (isRound) sctx.ellipse(scx, scy, cw / 2, ch / 2, 0, 0, Math.PI * 2);
+        else sctx.roundRect(scx - cw / 2, scy - ch / 2, cw, ch, r);
+        sctx.fill();
+        sctx.restore();
+        if (sAlpha < 1) {
+          sctx.globalCompositeOperation = 'destination-in';
+          sctx.fillStyle = `rgba(0,0,0,${sAlpha})`;
+          sctx.fillRect(0, 0, sScratchW, sScratchH);
+          sctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.drawImage(sScratch, cx - cw / 2 + sOff.x - sPad, cy - ch / 2 + sOff.y - sPad);
       }
 
       if (showBorder) {
@@ -2540,19 +2553,41 @@
         const tOff = getShadowOffsets(parseInt(textShadowDistance.value,10), parseInt(textShadowAngle.value,10));
         const tBlur = parseInt(textShadowBlur.value,10);
         const tAlpha = parseInt(textShadowOpacity.value,10) / 100;
-        ctx.save();
-        if (tBlur > 0) ctx.filter = `blur(${tBlur}px)`;
-        let fill;
+        const m = ctx.measureText(text);
+        const tw = Math.max(1, m.width);
+        const th = fontSize * 1.2;
+        const tPad = Math.ceil(tBlur * 3) + 20;
+        const tScratchW = Math.ceil(tw + tPad * 2);
+        const tScratchH = Math.ceil(th + tPad * 2);
+        const tScratch = document.createElement('canvas');
+        tScratch.width = tScratchW; tScratch.height = tScratchH;
+        const tctx = tScratch.getContext('2d');
+        const tcx = tScratchW / 2, tcy = tScratchH / 2;
+        let tFill;
         if (textShadowIsGradient) {
-          const m = ctx.measureText(text);
-          const tw = Math.max(1, m.width), th = fontSize * 1.2;
-          fill = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textShadowGradAngle.value,10),
-            hexToRgba(textShadowColor1.value, tAlpha), hexToRgba(textShadowColor2.value, tAlpha));
-        } else fill = hexToRgba(textShadowColor1.value, tAlpha);
-        ctx.translate(tOff.x, tOff.y);
-        ctx.fillStyle = fill;
-        ctx.fillText(text, cx, cy);
-        ctx.restore();
+          const rad = ((parseInt(textShadowGradAngle.value,10) - 90) * Math.PI) / 180;
+          const dx = Math.cos(rad), dy = Math.sin(rad);
+          const len = Math.abs((tw / 2) * dx) + Math.abs((th / 2) * dy);
+          const g = tctx.createLinearGradient(tcx - dx * len, tcy - dy * len, tcx + dx * len, tcy + dy * len);
+          g.addColorStop(0, hexToRgba(textShadowColor1.value, 1));
+          g.addColorStop(1, hexToRgba(textShadowColor2.value, 1));
+          tFill = g;
+        } else tFill = hexToRgba(textShadowColor1.value, 1);
+        tctx.save();
+        if (tBlur > 0 && _supportsCanvasFilter) tctx.filter = `blur(${tBlur}px)`;
+        tctx.font = `${isItalic?'italic ':''}${isBold?'bold ':''}${fontSize}px ${activeFont}`;
+        tctx.textAlign = 'center';
+        tctx.textBaseline = 'middle';
+        tctx.fillStyle = tFill;
+        tctx.fillText(text, tcx, tcy);
+        tctx.restore();
+        if (tAlpha < 1) {
+          tctx.globalCompositeOperation = 'destination-in';
+          tctx.fillStyle = `rgba(0,0,0,${tAlpha})`;
+          tctx.fillRect(0, 0, tScratchW, tScratchH);
+          tctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.drawImage(tScratch, cx + tOff.x - tw / 2 - tPad, cy + tOff.y - th / 2 - tPad);
       }
 
       if (textIsGradient) {
@@ -2600,17 +2635,38 @@
         const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value,10), parseInt(shapeShadowAngle.value,10));
         const sBlur = parseInt(shapeShadowBlur.value,10);
         const sAlpha = parseInt(shapeShadowOpacity.value,10) / 100;
-        ctx.save();
-        if (sBlur > 0) ctx.filter = `blur(${sBlur}px)`;
-        let fill;
-        if (shapeShadowIsGradient) fill = cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(shapeShadowGradAngle.value,10),
-          hexToRgba(shapeShadowColor1.value, sAlpha), hexToRgba(shapeShadowColor2.value, sAlpha));
-        else fill = hexToRgba(shapeShadowColor1.value, sAlpha);
-        ctx.translate(sOff.x, sOff.y);
-        ctx.fillStyle = fill;
-        drawShapePath(cx, cy, w, h);
-        ctx.fill();
-        ctx.restore();
+        const sPad = Math.ceil(sBlur * 3) + 20;
+        const sScratchW = Math.ceil(w + sPad * 2);
+        const sScratchH = Math.ceil(h + sPad * 2);
+        const sScratch = document.createElement('canvas');
+        sScratch.width = sScratchW; sScratch.height = sScratchH;
+        const sctx = sScratch.getContext('2d');
+        const scx = sScratchW / 2, scy = sScratchH / 2;
+        let sFill;
+        if (shapeShadowIsGradient) {
+          const rad = ((parseInt(shapeShadowGradAngle.value,10) - 90) * Math.PI) / 180;
+          const dx = Math.cos(rad), dy = Math.sin(rad);
+          const len = Math.abs((w / 2) * dx) + Math.abs((h / 2) * dy);
+          const g = sctx.createLinearGradient(scx - dx * len, scy - dy * len, scx + dx * len, scy + dy * len);
+          g.addColorStop(0, hexToRgba(shapeShadowColor1.value, 1));
+          g.addColorStop(1, hexToRgba(shapeShadowColor2.value, 1));
+          sFill = g;
+        } else sFill = hexToRgba(shapeShadowColor1.value, 1);
+        sctx.save();
+        if (sBlur > 0 && _supportsCanvasFilter) sctx.filter = `blur(${sBlur}px)`;
+        sctx.fillStyle = sFill;
+        sctx.beginPath();
+        if (isRound) sctx.ellipse(scx, scy, w / 2, h / 2, 0, 0, Math.PI * 2);
+        else sctx.roundRect(scx - w / 2, scy - h / 2, w, h, r);
+        sctx.fill();
+        sctx.restore();
+        if (sAlpha < 1) {
+          sctx.globalCompositeOperation = 'destination-in';
+          sctx.fillStyle = `rgba(0,0,0,${sAlpha})`;
+          sctx.fillRect(0, 0, sScratchW, sScratchH);
+          sctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.drawImage(sScratch, cx - w / 2 + sOff.x - sPad, cy - h / 2 + sOff.y - sPad);
       }
       if (showBorder) {
         const bgStyle = bgIsGradient ? cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(bgAngle.value,10), cBg1, cBg2) : cBg1;
@@ -2635,19 +2691,41 @@
         const tOff = getShadowOffsets(parseInt(textShadowDistance.value,10), parseInt(textShadowAngle.value,10));
         const tBlur = parseInt(textShadowBlur.value,10);
         const tAlpha = parseInt(textShadowOpacity.value,10) / 100;
-        ctx.save();
-        if (tBlur > 0) ctx.filter = `blur(${tBlur}px)`;
-        let fill;
+        const m = ctx.measureText(text);
+        const tw = Math.max(1, m.width);
+        const th = computedFs * 1.2;
+        const tPad = Math.ceil(tBlur * 3) + 20;
+        const tScratchW = Math.ceil(tw + tPad * 2);
+        const tScratchH = Math.ceil(th + tPad * 2);
+        const tScratch = document.createElement('canvas');
+        tScratch.width = tScratchW; tScratch.height = tScratchH;
+        const tctx = tScratch.getContext('2d');
+        const tcx = tScratchW / 2, tcy = tScratchH / 2;
+        let tFill;
         if (textShadowIsGradient) {
-          const m = ctx.measureText(text);
-          const tw = Math.max(1, m.width), th = computedFs * 1.2;
-          fill = cssLinearGradient(cx - tw/2, cy - th/2, tw, th, parseInt(textShadowGradAngle.value,10),
-            hexToRgba(textShadowColor1.value, tAlpha), hexToRgba(textShadowColor2.value, tAlpha));
-        } else fill = hexToRgba(textShadowColor1.value, tAlpha);
-        ctx.translate(tOff.x, tOff.y);
-        ctx.fillStyle = fill;
-        ctx.fillText(text, cx, cy);
-        ctx.restore();
+          const rad = ((parseInt(textShadowGradAngle.value,10) - 90) * Math.PI) / 180;
+          const dx = Math.cos(rad), dy = Math.sin(rad);
+          const len = Math.abs((tw / 2) * dx) + Math.abs((th / 2) * dy);
+          const g = tctx.createLinearGradient(tcx - dx * len, tcy - dy * len, tcx + dx * len, tcy + dy * len);
+          g.addColorStop(0, hexToRgba(textShadowColor1.value, 1));
+          g.addColorStop(1, hexToRgba(textShadowColor2.value, 1));
+          tFill = g;
+        } else tFill = hexToRgba(textShadowColor1.value, 1);
+        tctx.save();
+        if (tBlur > 0 && _supportsCanvasFilter) tctx.filter = `blur(${tBlur}px)`;
+        tctx.font = `${stylePrefix}${computedFs}px ${activeFont}`;
+        tctx.textAlign = 'center';
+        tctx.textBaseline = 'middle';
+        tctx.fillStyle = tFill;
+        tctx.fillText(text, tcx, tcy);
+        tctx.restore();
+        if (tAlpha < 1) {
+          tctx.globalCompositeOperation = 'destination-in';
+          tctx.fillStyle = `rgba(0,0,0,${tAlpha})`;
+          tctx.fillRect(0, 0, tScratchW, tScratchH);
+          tctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.drawImage(tScratch, cx + tOff.x - tw / 2 - tPad, cy + tOff.y - th / 2 - tPad);
       }
       if (textIsGradient) {
         const m = ctx.measureText(text);
@@ -2758,22 +2836,20 @@ ${cellsMarkup}</svg>`;
       downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `num${name}.svg`);
     });
 	
-	    // Pre-renders a blurred shadow to a base64 PNG for Adobe Illustrator compatibility.
-    // PC-scanned fonts cause Illustrator to silently drop SVG feGaussianBlur on text paths,
+	// Pre-renders a blurred shadow to a base64 PNG for Adobe Illustrator compatibility.
+	// Blurred shadows are rasterized for Illustrator compatibility (SVG feGaussianBlur
+	// is unreliable on text paths, and canvas filter semantics differ from CSS blur).
+	// Applies whenever either shadow has blur >= 1.
     // so we bake the blur into a raster image whenever the active font is a PC font.
-    function _renderBlurredShadowPNG(opts) {
-      // opts: { kind: 'shape'|'text', cw, ch, r, isRound,
-      //         text, fontSize, fontFamily, weight, style,
-      //         fill1, fill2, isGradient, gradAngle, alpha,
-      //         blurPx }
+	
+	function _renderBlurredShadowPNG(opts) {
       const {
         kind, cw, ch, r, isRound,
-        text, fontSize, fontFamily, weight, style,
+        text, fontSize, fontObj, weight, style, isVarFont,
         fill1, fill2, isGradient, gradAngle, alpha,
         blurPx
       } = opts;
 
-      // Generous padding so the blur never gets clipped by the canvas edge.
       const pad = Math.ceil(blurPx * 3) + 20;
       const canvasW = Math.ceil(cw + pad * 2);
       const canvasH = Math.ceil(ch + pad * 2);
@@ -2785,7 +2861,6 @@ ${cellsMarkup}</svg>`;
       const ccx = canvasW / 2;
       const ccy = canvasH / 2;
 
-      // Build the fill style (solid or linear gradient)
       let fillStyle;
       if (isGradient) {
         const rad = ((gradAngle - 90) * Math.PI) / 180;
@@ -2795,15 +2870,15 @@ ${cellsMarkup}</svg>`;
           ccx - dx * len, ccy - dy * len,
           ccx + dx * len, ccy + dy * len
         );
-        g.addColorStop(0, hexToRgba(fill1, alpha));
-        g.addColorStop(1, hexToRgba(fill2, alpha));
+        g.addColorStop(0, hexToRgba(fill1, 1));
+        g.addColorStop(1, hexToRgba(fill2, 1));
         fillStyle = g;
       } else {
-        fillStyle = hexToRgba(fill1, alpha);
+        fillStyle = hexToRgba(fill1, 1);
       }
 
       tctx.save();
-      if (blurPx > 0) tctx.filter = `blur(${blurPx}px)`;
+      if (blurPx > 0 && _supportsCanvasFilter) tctx.filter = `blur(${blurPx}px)`;
       tctx.fillStyle = fillStyle;
 
       if (kind === 'shape') {
@@ -2811,29 +2886,32 @@ ${cellsMarkup}</svg>`;
         if (isRound) tctx.ellipse(ccx, ccy, cw / 2, ch / 2, 0, 0, Math.PI * 2);
         else tctx.roundRect(ccx - cw / 2, ccy - ch / 2, cw, ch, r);
         tctx.fill();
-      } else {
-        tctx.font = `${style === 'italic' ? 'italic ' : ''}${weight === 'bold' ? 'bold ' : ''}${fontSize}px ${fontFamily}`;
-        tctx.textAlign = 'center';
-        tctx.textBaseline = 'alphabetic';
-
-        // Match the visual-centering used by _textToSvgPath:
-        // measure the actual ink bounding box and shift the fill so its
-        // visual center lands at (ccx, ccy) — same anchor the SVG path uses.
-        const m = tctx.measureText(text);
-        const ascent  = m.actualBoundingBoxAscent  || fontSize * 0.75;
-        const descent = m.actualBoundingBoxDescent || fontSize * 0.25;
-        const visualCenterY = (ascent - descent) / 2;  // +up from baseline
-        tctx.fillText(text, ccx, ccy + visualCenterY);
+      } else if (fontObj) {
+        // Use exact opentype.js vector path data so text shadow matches main text 1:1
+        const glyphPathData = _textToSvgPath(fontObj, text, fontSize, ccx, ccy, weight, style, isVarFont);
+        if (glyphPathData) {
+          const p2d = new Path2D(glyphPathData.d);
+          tctx.fill(p2d);
+        }
       }
       tctx.restore();
+
+      // Fade the entire blurred layer uniformly so the exported alpha matches
+      // what CSS `filter: blur()` produces on the live preview. Applying alpha
+      // inside the fill (before blur) does not match CSS semantics.
+      if (alpha < 1) {
+        tctx.globalCompositeOperation = 'destination-in';
+        tctx.fillStyle = `rgba(0,0,0,${alpha})`;
+        tctx.fillRect(0, 0, canvasW, canvasH);
+        tctx.globalCompositeOperation = 'source-over';
+      }
 
       return {
         dataUrl: tmp.toDataURL('image/png'),
         width: canvasW,
         height: canvasH,
-        // Offsets to add to the shadow's (cx, cy) when placing the <image>
-        offsetX: -ccx,
-        offsetY: -ccy
+        left: -pad,
+        top: -pad
       };
     }
 
@@ -2847,7 +2925,7 @@ ${cellsMarkup}</svg>`;
       const bdr2 = getHexAndAlpha(borderColor2.value, borderOpacity.value);
       const sBlur = parseInt(shapeShadowBlur.value, 10);
       const tBlur = parseInt(textShadowBlur.value, 10);
-	  const _useRasterShadow = !GOOGLE_FONT_TTF_URLS[cleanFont];
+	  const _useRasterShadow = (sBlur > 0 || tBlur > 0);
 
       const _mCanvas = document.createElement('canvas');
       const _mCtx = _mCanvas.getContext('2d');
@@ -2863,6 +2941,7 @@ ${cellsMarkup}</svg>`;
 
       const boldStrokeWidth = (!hasNativeBold && weight === 'bold') ? fontSize * 0.03 : 0;
       const glyphData = fontObj ? _textToSvgPath(fontObj, text, fontSize, cx, cy, weight, style, isVarFont) : null;
+      // (param name changed but argument is still isVarFont — no change needed at call site)
 
       const weightNum = (weight === 'bold' || weight === '700') ? '700' : '400';
       const synthStyle = isVarFont ? 'font-synthesis: weight style;' : 'font-synthesis: none;';
@@ -2885,8 +2964,8 @@ ${cellsMarkup}</svg>`;
             alpha: parseInt(shapeShadowOpacity.value, 10) / 100,
             blurPx: sBlur
           });
-          const imgX = (cx + sOff.x + png.offsetX).toFixed(2);
-          const imgY = (cy + sOff.y + png.offsetY).toFixed(2);
+          const imgX = (cx - cw / 2 + sOff.x + png.left).toFixed(2);
+          const imgY = (cy - ch / 2 + sOff.y + png.top).toFixed(2);
           markup += `  <image xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
         } else {
           // Vector shadow (Google fonts or blur=0) — keeps the export lean.
@@ -2950,11 +3029,10 @@ ${cellsMarkup}</svg>`;
         const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
 
         if (_useRasterShadow && tBlur > 0) {
-          // Rasterized shadow path — works in Illustrator for PC fonts.
           const png = _renderBlurredShadowPNG({
             kind: 'text',
             cw: gradW, ch: gradH, r: 0, isRound: false,
-            text, fontSize, fontFamily: cleanFont, weight, style,
+            text, fontSize, fontObj, weight, style, isVarFont,
             fill1: textShadowColor1.value,
             fill2: textShadowColor2.value,
             isGradient: textShadowIsGradient,
@@ -2962,8 +3040,8 @@ ${cellsMarkup}</svg>`;
             alpha: parseInt(textShadowOpacity.value, 10) / 100,
             blurPx: tBlur
           });
-          const imgX = (cx + tOff.x + png.offsetX).toFixed(2);
-          const imgY = (cy + tOff.y + png.offsetY).toFixed(2);
+          const imgX = (cx + tOff.x - gradW / 2 + png.left).toFixed(2);
+          const imgY = (cy + tOff.y - gradH / 2 + png.top).toFixed(2);
           markup += `  <image xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
         } else {
           // Vector shadow (Google fonts or blur=0)
@@ -3190,10 +3268,25 @@ ${res.markup}</svg>`;
       }
     });
 
+	// Handle browser session restore (Ctrl+Shift+T) and back-forward cache restoration.
+    // `pageshow` fires after session state and form inputs have been fully re-applied by the browser.
+    window.addEventListener('pageshow', (event) => {
+      // If persisted is true, the page was restored from bfcache or session restore
+      if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+        resetAll();
+      }
+    });
+
+    // Initial load reset with requestAnimationFrame to ensure it runs strictly after browser restore passes
+    window.addEventListener('load', () => {
+      requestAnimationFrame(() => {
+        resetAll();
+      });
+    });
+
     document.documentElement.style.setProperty('--active-font', fontSelect.value);
     applyStyleButtonAvailability();
     document.fonts.ready.then(async () => {
-	  try { await preloadGoogleFontVariants(); } catch (_) {}
 	  render();
 	});
     render();
