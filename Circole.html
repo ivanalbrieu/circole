@@ -66,7 +66,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.8</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.9</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button id="btnMobileHelp" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
@@ -117,9 +117,9 @@
             <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
           </g>
         </svg>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.8</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.1.9</span>
       </div>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 shrink-0">
         <button id="btnLoadSettings" title="Load Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
           <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span id="lblLoadBtn">Load</span>
         </button>
@@ -127,7 +127,7 @@
         <button id="btnSaveSettings" title="Save Settings" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1">
           <i data-lucide="download" class="w-3.5 h-3.5"></i> <span id="lblSaveBtn">Save</span>
         </button>
-        <button id="btnCloseSidebar" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 ml-1">
+        <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 ml-1 flex items-center justify-center">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -506,7 +506,7 @@
         <button id="btnDownloadSVG" class="py-2 px-3 border border-sky-600 text-sky-600 dark:text-sky-400 rounded-lg text-xs font-bold hover:bg-sky-50 dark:hover:bg-slate-800">SVG</button>
       </div>
       <button id="btnPrint" class="w-full py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800">Print / PDF</button>
-      <button id="btnReset" class="w-full py-1.5 text-xs text-rose-500 hover:text-rose-700 font-bold">Reset (R)</button>
+      <button id="btnReset" class="w-full py-1.5 border border-rose-300 dark:border-rose-900 rounded-lg text-xs text-rose-500 dark:text-rose-100 hover:text-rose-700 font-bold hover:bg-rose-50 dark:hover:bg-rose-950">Reset</button>
     </div>
   </aside>
 
@@ -601,7 +601,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.8</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.1.9</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -682,7 +682,7 @@
         fontSize: "Font Size", fontFamily: "Font Family", loadFonts: "Scan PC", uploadFont: "Upload Font",
         enableShapeShadow: "Shape Shadow", enableTextShadow: "Text Shadow", shadowFill: "Shadow Fill",
         distance: "Distance", blur: "Blur", angle: "Angle",
-        downloadPNG: "Download PNG", downloadSVG: "Download SVG", printPDF: "Print / PDF", reset: "Reset (R)",
+        downloadPNG: "Download PNG", downloadSVG: "Download SVG", printPDF: "Print / PDF", reset: "Reset",
         cellHintPrefix: "Editing cell", navHint: "PgUp / PgDn to move between cells. Ctrl+Arrows to move in the grid.",
         errInvalidFile: "Invalid settings file format.",
         errFontLoad: "Could not load font file. Please provide a valid TTF, OTF, or WOFF file (WOFF2 is not supported).",
@@ -724,7 +724,7 @@
         fontSize: "Tamaño de Fuente", fontFamily: "Tipo de Fuente", loadFonts: "Escanear PC", uploadFont: "Subir Fuente",
         enableShapeShadow: "Sombra de Figura", enableTextShadow: "Sombra de Texto", shadowFill: "Relleno de Sombra",
         distance: "Distancia", blur: "Desenfoque", angle: "Ángulo",
-        downloadPNG: "Descargar PNG", downloadSVG: "Descargar SVG", printPDF: "Imprimir / PDF", reset: "Reiniciar (R)",
+        downloadPNG: "Descargar PNG", downloadSVG: "Descargar SVG", printPDF: "Imprimir / PDF", reset: "Reiniciar",
         cellHintPrefix: "Editando celda", navHint: "PgUp / PgDn para moverse entre celdas. Ctrl+Flechas para moverse en la grilla.",
         errInvalidFile: "Formato de archivo de configuración inválido.",
         errFontLoad: "No se pudo cargar la fuente. Proporciona un archivo TTF, OTF o WOFF válido (WOFF2 no está soportado).",
@@ -812,6 +812,7 @@
     let currentZoom = 1.0;
     let preNoFrameWidth = 340;
     let preNoFrameHeight = 340;
+    let preNoFrameSize = 130;
 
     let bgIsGradient = false;
     let textIsGradient = false;
@@ -1753,8 +1754,36 @@
     textShadowAngle.addEventListener('input', () => { textShadowAngleVal.textContent = `${textShadowAngle.value}°`; render(); });
     [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2, bgOpacity, textOpacity, borderOpacity, shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2].forEach(el => el.addEventListener('input', render));
 
-    btnBorderOn.addEventListener('click', () => { showBorder = true; toggleBtn(btnBorderOn, btnBorderOff); sliderWidth.max = 700; sliderHeight.max = 700; sliderWidth.value = preNoFrameWidth; sliderHeight.value = preNoFrameHeight; render(); });
-    btnBorderOff.addEventListener('click', () => { showBorder = false; toggleBtn(btnBorderOff, btnBorderOn); preNoFrameWidth = parseInt(sliderWidth.value, 10); preNoFrameHeight = parseInt(sliderHeight.value, 10); sliderWidth.max = 1000; sliderHeight.max = 1000; sliderWidth.value = 1000; sliderHeight.value = 1000; render(); });
+    btnBorderOn.addEventListener('click', () => { 
+      showBorder = true; 
+      toggleBtn(btnBorderOn, btnBorderOff); 
+      sliderWidth.max = 700; 
+      sliderHeight.max = 700; 
+      sliderWidth.value = preNoFrameWidth; 
+      sliderHeight.value = preNoFrameHeight; 
+      sliderSize.max = FONT_SIZE_MAX_BORDER;
+      sliderSize.value = Math.min(preNoFrameSize, FONT_SIZE_MAX_BORDER); 
+      render(); 
+    });
+    btnBorderOff.addEventListener('click', () => { 
+      showBorder = false; 
+      toggleBtn(btnBorderOff, btnBorderOn); 
+      preNoFrameWidth = parseInt(sliderWidth.value, 10); 
+      preNoFrameHeight = parseInt(sliderHeight.value, 10); 
+      preNoFrameSize = parseInt(sliderSize.value, 10); 
+      sliderWidth.max = 1000; 
+      sliderHeight.max = 1000; 
+      sliderSize.max = FONT_SIZE_MAX_NO_BORDER;
+      
+      const isPortraitScreen = window.innerHeight > window.innerWidth;
+      const defW = isPortraitScreen ? 480 : 854;
+      const defH = isPortraitScreen ? 854 : 480;
+      
+      sliderWidth.value = defW; 
+      sliderHeight.value = defH; 
+      sliderSize.value = 50; 
+      render(); 
+    });
     btnShapeCircle.addEventListener('click', () => { isRound = true; toggleBtn(btnShapeCircle, btnShapeSquare); render(); });
     btnShapeSquare.addEventListener('click', () => { isRound = false; toggleBtn(btnShapeSquare, btnShapeCircle); render(); });
     btnBold.addEventListener('click', () => {
@@ -1965,6 +1994,7 @@
       activeCellIndex = 0; lastPaperCellIndex = 0; noActiveCell = false; inputNum.value = '0';
       inputPrefix.value = ''; inputSuffix.value = '';
       sliderWidth.value = '340'; sliderHeight.value = '340'; sliderRoundness.value = '0'; sliderSize.value = '130';
+      preNoFrameWidth = 340; preNoFrameHeight = 340; preNoFrameSize = 130;
       showBorder = true; toggleBtn(btnBorderOn, btnBorderOff);
       isRound = true; toggleBtn(btnShapeCircle, btnShapeSquare);
       isBold = false; isItalic = false;
@@ -2246,6 +2276,21 @@
         if (uniformFontSize > fs) uniformFontSize = fs;
       }
       sizeVal.textContent = uniformFontSize;
+
+      // Control de visibilidad de controles según estado del marco y forma
+      const shapeTypeSec = document.getElementById('shapeTypeSection');
+      if (shapeTypeSec) {
+        shapeTypeSec.style.display = showBorder ? 'block' : 'none';
+      }
+      const borderColSec = document.getElementById('borderColorSection');
+      if (borderColSec) {
+        borderColSec.style.display = showBorder ? 'block' : 'none';
+      }
+      if (!showBorder || isRound) {
+        roundnessContainer.classList.add('hidden');
+      } else {
+        roundnessContainer.classList.remove('hidden');
+      }
 
       const sheetN = totalCells();
       for (let i = 0; i < sheetN; i++) {
