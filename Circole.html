@@ -1092,7 +1092,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.1</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.2</span>
       <span class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1161,7 +1161,7 @@
               <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
             </g>
           </svg>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.1</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.2</span>
           <span id="safeModeChip" class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
         </div>
         <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
@@ -1722,7 +1722,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.1</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.2</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -1775,7 +1775,7 @@
       const safeMode = nativeUI || vectorBroken;
 
       return {
-        version: '5.2.1',
+        version: '5.2.2',
         hasTailwind: !nativeUI, 
         hasLucide, 
         hasOpentype,
@@ -2124,9 +2124,18 @@
     }
 
     function _readVariantLabel(font) {
-      // 1. nameID 17 (Typographic Subfamily) — preferred
+      const w = _detectWeight(font);
+      const italic = _detectItalic(font);
+
+      // 1. nameID 17 (Typographic Subfamily) — solo si es congruente con el usWeightClass
       const typo = _readName(font, 17, 'en');
-      if (typo && typo.trim()) return typo.trim();
+      if (typo && typo.trim() && !RIBBI_LABELS.has(typo.trim().toLowerCase())) {
+        const isMismatch = (w === 400 && /thin|light|bold|black/i.test(typo)) ||
+                           (w === 100 && !/thin/i.test(typo));
+        if (!isMismatch) {
+          return typo.trim();
+        }
+      }
 
       // 2. nameID 2 (Legacy Subfamily) — skip if it's a RIBBI value
       const legacy = _readName(font, 2, 'en');
@@ -2134,11 +2143,12 @@
         return legacy.trim();
       }
 
-      // 3. Constructed label from weight + style
-      const w = _detectWeight(font);
-      const italic = _detectItalic(font);
+      // 3. Formato canónico: peso 400 con cursiva se etiqueta 'Italic' (no 'Regular Italic')
       const base = WEIGHT_LABELS[w] || String(w);
-      return italic ? `${base} Italic` : base;
+      if (italic) {
+        return (w === 400) ? 'Italic' : `${base} Italic`;
+      }
+      return base;
     }
 
     function _readFamilyName(font) {
@@ -2705,15 +2715,20 @@
 	  const env = window.__CIRCOLE_ENV;
 	  const availability = (env && env.googleFontsAvailable) || {};
 	  if (isSystemFallback(cleanFont)) return null;
+
+	  // 1. Prioridad absoluta: si la fuente está subida/en memoria, nunca sustituir a sistema
+	  const hasBuffer = !!(_uploadedFontBuffers && _uploadedFontBuffers[cleanFont]);
+	  if (hasBuffer) return null;
+
+	  // 2. Solo si no está en memoria, verificar si es de Google y está caída o sin conexión
 	  if (cleanFont in GOOGLE_FONT_TTF_URLS) {
 		if (env && (env.isOffline || (cleanFont in availability && availability[cleanFont] === false))) {
 		  const cls = FONT_FALLBACK_CLASS[cleanFont] || 'sans';
 		  return { to: FALLBACK_FAMILIES[cls], reason: 'google-offline' };
 		}
-		return null; // Google font available online
+		return null; // Google font disponible online
 	  }
-	  const hasBuffer = !!(_uploadedFontBuffers && _uploadedFontBuffers[cleanFont]);
-	  if (hasBuffer) return null;
+
 	  const cls = classifyFontToSystem(cleanFont);
 	  return { to: FALLBACK_FAMILIES[cls], reason: 'font-unavailable' };
 	}	
@@ -3177,6 +3192,45 @@
       e.preventDefault();
       applyZoom(currentZoom * (e.deltaY < 0 ? 1.08 : 0.92));
     }, { passive: false });
+
+    // --- PINCH-TO-ZOOM GESTURES (Mobile) ---
+    let pinchInitialDistance = null;
+    let pinchInitialZoom = currentZoom;
+
+    function getTouchDistance(touch1, touch2) {
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    previewViewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        // Bloquear comportamiento nativo de zoom de página en el navegador
+        e.preventDefault();
+        pinchInitialDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        pinchInitialZoom = currentZoom;
+      }
+    }, { passive: false });
+
+    previewViewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && pinchInitialDistance) {
+        e.preventDefault();
+        const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        if (currentDistance > 0) {
+          const pinchScale = currentDistance / pinchInitialDistance;
+          applyZoom(pinchInitialZoom * pinchScale);
+        }
+      }
+    }, { passive: false });
+
+    const endPinch = (e) => {
+      if (e.touches.length < 2) {
+        pinchInitialDistance = null;
+      }
+    };
+    previewViewport.addEventListener('touchend', endPinch, { passive: true });
+    previewViewport.addEventListener('touchcancel', endPinch, { passive: true });
+
     btnZoomOut.addEventListener('click', () => applyZoom(currentZoom - 0.1));
     btnZoomIn.addEventListener('click', () => applyZoom(currentZoom + 0.1));
     btnZoomReset.addEventListener('click', () => { if (isPaperMode) autoFitZoom(); else applyZoom(1.0); });
@@ -3406,7 +3460,7 @@
       document.getElementById('helpHeaderApp').textContent =
         'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version
           ? window.__CIRCOLE_ENV.version
-          : '5.2.1');
+          : '5.2.2');
       document.getElementById('helpDescApp').textContent = t.helpAppDesc;
       document.getElementById('helpHeaderCredits').textContent = t.helpCreators;
       document.getElementById('creditDevs').textContent = t.helpDevs;
@@ -3541,7 +3595,24 @@
       textStrokeWidthVal.textContent = textStrokeWidth;
       render();
     });
-    [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2, bgOpacity, textOpacity, borderOpacity, shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2].forEach(el => el.addEventListener('input', render));
+    // Sliders y números (escuchan input)
+    [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgOpacity, textOpacity, borderOpacity].forEach(el => el.addEventListener('input', render));
+
+    // Inputs de color (Bug B3: escuchan input para preview y change para commit inmediato en historial)
+    const colorPickers = [
+      bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2,
+      shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2,
+      textStrokeColor1, textStrokeColor2
+    ];
+    colorPickers.forEach(el => {
+      if (el) {
+        el.addEventListener('input', render);
+        el.addEventListener('change', () => {
+          render();
+          pushHistory();
+        });
+      }
+    });
 
     btnBorderOn.addEventListener('click', () => { 
       showBorder = true; 
@@ -4061,13 +4132,30 @@
           if (s.borderAngle) { borderAngle.value = s.borderAngle; borderAngleVal.textContent = `${s.borderAngle}°`; }
           if (s.borderOpacity) { borderOpacity.value = s.borderOpacity; borderOpacityVal.textContent = `${s.borderOpacity}%`; }
 		  
-		  // Shape Stroke — presence-driven. Missing keys → defaults (on, 1.2%).
+		  // Shape Stroke — presence-driven. Missing keys → defaults (on, 4px).
           shapeStrokeOn = (s.shapeStrokeEnabled !== undefined) ? !!s.shapeStrokeEnabled : true;
           shapeStrokeEnabledEl.checked = shapeStrokeOn;
           shapeStrokeControls.classList.toggle('hidden', !shapeStrokeOn);
 
-          shapeStrokeWidth = (s.shapeStrokeWidth !== undefined) ? parseFloat(s.shapeStrokeWidth) : 4;
-		  if (isNaN(shapeStrokeWidth)) shapeStrokeWidth = 4;
+          if (s.shapeStrokeWidth !== undefined) {
+            let rawVal = parseFloat(s.shapeStrokeWidth);
+            if (isNaN(rawVal)) rawVal = 4;
+
+            // Regla de migración % -> px:
+            // Si el archivo es v6 o v7 antiguo donde el valor se guardaba en escala porcentual (<= 20%):
+            const isLegacyPercent = (s.version === undefined || s.version <= 7) && rawVal <= 20;
+            if (isLegacyPercent) {
+              const baseW = parseFloat(s.sliderWidth) || 340;
+              const baseH = parseFloat(s.sliderHeight) || 340;
+              const minDim = Math.min(baseW, baseH);
+              shapeStrokeWidth = Math.max(0.5, Math.round(((minDim * rawVal) / 100) * 2) / 2);
+            } else {
+              shapeStrokeWidth = rawVal;
+            }
+          } else {
+            shapeStrokeWidth = 4;
+          }
+
           shapeStrokeWidthSlider.value = shapeStrokeWidth;
           shapeStrokeWidthVal.textContent = shapeStrokeWidth;
 
