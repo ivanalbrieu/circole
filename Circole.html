@@ -1092,7 +1092,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.2</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.3</span>
       <span class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1161,7 +1161,7 @@
               <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
             </g>
           </svg>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.2</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.3</span>
           <span id="safeModeChip" class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
         </div>
         <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
@@ -1722,7 +1722,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.2</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.3</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -1775,7 +1775,7 @@
       const safeMode = nativeUI || vectorBroken;
 
       return {
-        version: '5.2.2',
+        version: '5.2.3',
         hasTailwind: !nativeUI, 
         hasLucide, 
         hasOpentype,
@@ -1995,6 +1995,18 @@
 		fontSubstitutedTemplate: 'Font "{{from}}" unavailable — using {{to}}',
 		fontVariantSubstitutedTemplate: 'Variant "{{from}}" unavailable — using "{{to}}"',
 		fontsUploadedPrefix: "Fonts uploaded:",
+		variants: {
+          'Thin': 'Thin',
+          'ExtraLight': 'ExtraLight',
+          'Light': 'Light',
+          'Regular': 'Regular',
+          'Medium': 'Medium',
+          'SemiBold': 'SemiBold',
+          'Bold': 'Bold',
+          'ExtraBold': 'ExtraBold',
+          'Black': 'Black',
+          'Italic': 'Italic'
+        },
         alertError: "Please fix the errors in the number field before downloading."
       },
       es: {
@@ -2046,6 +2058,18 @@
 		fontSubstitutedTemplate: 'Fuente "{{from}}" no disponible — usando {{to}}',
 		fontVariantSubstitutedTemplate: 'Variante "{{from}}" no disponible — usando "{{to}}"',
 		fontsUploadedPrefix: "Fuentes cargadas:",
+		variants: {
+          'Thin': 'Fina',
+          'ExtraLight': 'Extra Ligera',
+          'Light': 'Ligera',
+          'Regular': 'Regular',
+          'Medium': 'Mediana',
+          'SemiBold': 'Seminegrita',
+          'Bold': 'Negrita',
+          'ExtraBold': 'Extranegrita',
+          'Black': 'Negra',
+          'Italic': 'Cursiva'
+        },
         alertError: "Por favor corrige los errores antes de descargar.",
       }
     };
@@ -2548,6 +2572,20 @@
       }
       return base;
     }
+	
+	function _translateVariantLabel(label) {
+      if (!label) return '';
+      const t = translations[currentLang];
+      if (!t || !t.variants) return label;
+
+      let result = label;
+      // Reemplaza cada término de peso y estilo por su equivalente localizado
+      for (const [enTerm, esTerm] of Object.entries(t.variants)) {
+        const regex = new RegExp(`\\b${enTerm}\\b`, 'g');
+        result = result.replace(regex, esTerm);
+      }
+      return result;
+    }
 
     function _buildGoogleVariantDescriptors(family) {
       const cfg = GOOGLE_FONT_VARIANTS[family];
@@ -2626,14 +2664,12 @@
       const map = _uploadedFontBuffers[clean];
       const keys = map ? Object.keys(map) : [];
 
-      // System fallback → show a single "Regular" option. Never hide the
-      // Style dropdown for a system font; every system font has exactly one
-      // variant, and the user should see that.
+      // System fallback → show a single "Regular" option localizado.
       if (isSystemFallback(clean)) {
         variantSelect.innerHTML = '';
         const opt = document.createElement('option');
         opt.value = '400_normal';
-        opt.textContent = 'Regular';
+        opt.textContent = _translateVariantLabel('Regular');
         variantSelect.appendChild(opt);
         selectedVariant = '400_normal';
         variantGroup.classList.remove('hidden');
@@ -2661,7 +2697,8 @@
         const desc = map[key];
         const opt = document.createElement('option');
         opt.value = key;
-        opt.textContent = desc.label || key;
+        // Traduce únicamente el texto visible en pantalla (ej. "Negrita Cursiva")
+        opt.textContent = _translateVariantLabel(desc.label || key);
         if (key === selectedVariant) opt.selected = true;
         variantSelect.appendChild(opt);
       }
@@ -3369,104 +3406,137 @@
 
     function setLanguage(lang) {
       currentLang = lang;
-      selectLang.value = lang;
+      if (selectLang) selectLang.value = lang;
       if (selectLangMobile) selectLangMobile.value = lang;
       const t = translations[lang];
+      if (!t) return;
 
-      document.getElementById('txtTabNumber').textContent = t.tabNumber;
-      document.getElementById('txtTabShape').textContent = t.tabShape;
-      document.getElementById('txtTabCanvas').textContent = t.tabCanvas;
-      document.getElementById('txtTabColors').textContent = t.tabColors;
-      document.getElementById('txtTabTypography').textContent = t.tabTypography;
-      document.getElementById('txtTabShadow').textContent = t.tabShadow;
-      document.getElementById('lblLang').textContent = t.langText;
-      document.getElementById('lblNumber').textContent = t.numberLabel;
-      document.getElementById('lblAffix').textContent = t.affixLabel;
-      inputPrefix.placeholder = t.prefixPlaceholder;
-      inputSuffix.placeholder = t.suffixPlaceholder;
-      document.getElementById('lblJump').textContent = t.jumpLabel;
-      document.getElementById('lblFrame').textContent = t.frameLabel;
-      btnBorderOn.textContent = t.showFrame;
-      btnBorderOff.textContent = t.noFrame;
-      document.getElementById('lblBase').textContent = t.baseLabel;
-      btnShapeCircle.textContent = t.round;
-      btnShapeSquare.textContent = t.box;
-      document.getElementById('lblCanvasMode').textContent = t.canvasMode;
-      btnModeFit.textContent = t.fitContent;
-      btnModePaper.textContent = t.paperSheet;
-      document.getElementById('lblPaperSize').textContent = t.paperSize;
-      document.getElementById('lblOrientation').textContent = t.orientation;
-      document.getElementById('lblPortrait').textContent = t.portrait;
-      document.getElementById('lblLandscape').textContent = t.landscape;
-      document.getElementById('lblGridCols').textContent = t.gridCols;
-      document.getElementById('lblGridRows').textContent = t.gridRows;
-	  document.getElementById('lblShowGrid').textContent = t.showGrid;
-      document.getElementById('lblNavHint').textContent = t.navHint;
-      document.getElementById('lblBgType').textContent = t.bgFill;
-      document.getElementById('lblTextType').textContent = t.textFill;
-      document.getElementById('lblBorderType').textContent = t.borderFill;
-	  document.getElementById('lblEnableShapeStroke').textContent = t.enableShapeStroke;
-      document.getElementById('lblShapeStrokeWidth').textContent = t.shapeStrokeWidth;
-      document.getElementById('lblBgOpacity').textContent = t.opacity;
-      document.getElementById('lblTextOpacity').textContent = t.opacity;
-      document.getElementById('lblBorderOpacity').textContent = t.opacity;
-      btnBgSolid.textContent = t.solid; btnBgGrad.textContent = t.gradient;
-      btnTextSolid.textContent = t.solid; btnTextGrad.textContent = t.gradient;
-      btnBorderSolid.textContent = t.solid; btnBorderGrad.textContent = t.gradient;
-      document.getElementById('lblStyle').textContent = t.style;
-	  document.getElementById('lblEnableTextStroke').textContent = t.enableTextStroke;
-      document.getElementById('lblTextStrokeType').textContent = t.textStrokeFill;
-      document.getElementById('lblTextStrokeWidth').textContent = t.textStrokeWidth;
-      document.getElementById('lblTextStrokeOpacity').textContent = t.opacity;
-      document.getElementById('lblFontSize').textContent = t.fontSize;
-      document.getElementById('lblMax').textContent = t.maxLabel;
-      document.getElementById('lblFit').textContent = t.fitLabel;
-      document.getElementById('lblFontFamily').textContent = t.fontFamily;
-      btnLoadFonts.textContent = t.loadFonts;
-      document.getElementById('btnUploadFont').textContent = t.uploadFont;
-      document.getElementById('lblEnableShapeShadow').textContent = t.enableShapeShadow;
-      document.getElementById('lblEnableTextShadow').textContent = t.enableTextShadow;
-      document.getElementById('lblShapeShadowType').textContent = t.shadowFill;
-      document.getElementById('lblTextShadowType').textContent = t.shadowFill;
-      document.getElementById('lblShapeShadowOpacity').textContent = t.opacity;
-      document.getElementById('lblTextShadowOpacity').textContent = t.opacity;
-      document.getElementById('lblShapeShadowDistance').textContent = t.distance;
-      document.getElementById('lblTextShadowDistance').textContent = t.distance;
-      document.getElementById('lblShapeShadowBlur').textContent = t.blur;
-      document.getElementById('lblTextShadowBlur').textContent = t.blur;
-      document.getElementById('lblShapeShadowAngle').textContent = t.angle;
-      document.getElementById('lblTextShadowAngle').textContent = t.angle;
-	  document.getElementById('lblSvgRasterShadowNote').textContent = t.svgRasterShadowNote || '';
-      // Chip text is handled by updateSafeModeBannerText() via .lblSafeModeText.
-      // Do not clobber #safeModeChip here — it has no nested span and would lose structure.
-      btnShapeShadowSolid.textContent = t.solid; btnShapeShadowGrad.textContent = t.gradient;
-      btnTextShadowSolid.textContent = t.solid; btnTextShadowGrad.textContent = t.gradient;
-      document.getElementById('btnDownloadPNG').textContent = t.downloadPNG;
-      document.getElementById('btnDownloadSVG').textContent = t.downloadSVG;
-      document.getElementById('btnPrint').textContent = t.printPDF;
-      document.getElementById('btnReset').textContent = t.reset;
+      const setText = (id, txt) => {
+        const el = document.getElementById(id);
+        if (el && txt !== undefined) el.textContent = txt;
+      };
 
-      document.getElementById('lblCellHint').textContent = t.cellHintPrefix;
-      document.getElementById('lblLoadBtn').textContent = t.loadLabel;
-      document.getElementById('lblSaveBtn').textContent = t.saveLabel;
-      btnLoadSettings.title = t.titleLoad;
-      btnSaveSettings.title = t.titleSave;
-      btnUndo.title = t.titleUndo;
-      btnRedo.title = t.titleRedo;
+      // Pestañas del acordeón
+      setText('txtTabNumber', t.tabNumber);
+      setText('txtTabShape', t.tabShape);
+      setText('txtTabCanvas', t.tabCanvas);
+      setText('txtTabColors', t.tabColors);
+      setText('txtTabTypography', t.tabTypography);
+      setText('txtTabShadow', t.tabShadow);
+      setText('lblLang', t.langText);
 
-      document.getElementById('lblPaperLetter').textContent = t.paperLetter;
+      // 1. Número y Etiqueta
+      setText('lblNumber', t.numberLabel);
+      setText('lblAffix', t.affixLabel);
+      if (inputPrefix) inputPrefix.placeholder = t.prefixPlaceholder;
+      if (inputSuffix) inputSuffix.placeholder = t.suffixPlaceholder;
+      setText('lblJump', t.jumpLabel);
 
-      document.getElementById('helpModalTitle').textContent = t.helpTitle;
-      document.getElementById('helpHeaderApp').textContent =
-        'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version
-          ? window.__CIRCOLE_ENV.version
-          : '5.2.2');
-      document.getElementById('helpDescApp').textContent = t.helpAppDesc;
-      document.getElementById('helpHeaderCredits').textContent = t.helpCreators;
-      document.getElementById('creditDevs').textContent = t.helpDevs;
-      document.getElementById('creditAI').textContent = t.helpAI;
-      document.getElementById('helpHeaderShortcuts').textContent = t.helpShortcuts;
+      // 2. Figura y Marco
+      setText('lblFrame', t.frameLabel);
+      setText('btnBorderOn', t.showFrame);
+      setText('btnBorderOff', t.noFrame);
+      setText('lblBase', t.baseLabel);
+      setText('btnShapeCircle', t.round);
+      setText('btnShapeSquare', t.box);
+      setText('lblWidth', t.width);
+      setText('lblHeight', t.height);
+      setText('lblRound', t.roundness);
 
+      // 3. Modo Papel
+      setText('lblCanvasMode', t.canvasMode);
+      setText('btnModeFit', t.fitContent);
+      setText('btnModePaper', t.paperSheet);
+      setText('lblPaperSize', t.paperSize);
+      setText('lblOrientation', t.orientation);
+      setText('lblPortrait', t.portrait);
+      setText('lblLandscape', t.landscape);
+      setText('lblGridCols', t.gridCols);
+      setText('lblGridRows', t.gridRows);
+      setText('lblShowGrid', t.showGrid);
+      setText('lblNavHint', t.navHint);
+      setText('lblPaperLetter', t.paperLetter);
+
+      // 4. Colores y Contornos
+      setText('lblBgType', t.bgFill);
+      setText('lblTextType', t.textFill);
+      setText('lblBorderType', t.borderFill);
+      setText('lblEnableShapeStroke', t.enableShapeStroke);
+      setText('lblShapeStrokeWidth', t.shapeStrokeWidth);
+      setText('lblBgOpacity', t.opacity);
+      setText('lblTextOpacity', t.opacity);
+      setText('lblBorderOpacity', t.opacity);
+
+      // Botones Solid / Gradient (respetando sus clases y estructura)
+      if (btnBgSolid) btnBgSolid.textContent = t.solid;
+      if (btnBgGrad) btnBgGrad.textContent = t.gradient;
+      if (btnBorderSolid) btnBorderSolid.textContent = t.solid;
+      if (btnBorderGrad) btnBorderGrad.textContent = t.gradient;
+      if (btnTextSolid) btnTextSolid.textContent = t.solid;
+      if (btnTextGrad) btnTextGrad.textContent = t.gradient;
+      if (btnTextStrokeSolid) btnTextStrokeSolid.textContent = t.solid;
+      if (btnTextStrokeGrad) btnTextStrokeGrad.textContent = t.gradient;
+      if (btnShapeShadowSolid) btnShapeShadowSolid.textContent = t.solid;
+      if (btnShapeShadowGrad) btnShapeShadowGrad.textContent = t.gradient;
+      if (btnTextShadowSolid) btnTextShadowSolid.textContent = t.solid;
+      if (btnTextShadowGrad) btnTextShadowGrad.textContent = t.gradient;
+
+      // Contorno de texto
+      setText('lblEnableTextStroke', t.enableTextStroke);
+      setText('lblTextStrokeType', t.textStrokeFill);
+      setText('lblTextStrokeWidth', t.textStrokeWidth);
+      setText('lblTextStrokeOpacity', t.opacity);
+
+      // 5. Tipografía
+      setText('lblFontFamily', t.fontFamily);
+      setText('lblStyle', t.style);
+      setText('lblFontSize', t.fontSize);
+      setText('lblMax', t.maxLabel);
+      setText('lblFit', t.fitLabel);
+      setText('btnLoadFonts', t.loadFonts);
+      setText('btnUploadFont', t.uploadFont);
+
+      // 6. Sombras
+      setText('lblEnableShapeShadow', t.enableShapeShadow);
+      setText('lblEnableTextShadow', t.enableTextShadow);
+      setText('lblShapeShadowType', t.shadowFill);
+      setText('lblTextShadowType', t.shadowFill);
+      setText('lblShapeShadowOpacity', t.opacity);
+      setText('lblTextShadowOpacity', t.opacity);
+      setText('lblShapeShadowDistance', t.distance);
+      setText('lblTextShadowDistance', t.distance);
+      setText('lblShapeShadowBlur', t.blur);
+      setText('lblTextShadowBlur', t.blur);
+      setText('lblShapeShadowAngle', t.angle);
+      setText('lblTextShadowAngle', t.angle);
+      setText('lblSvgRasterShadowNote', t.svgRasterShadowNote || '');
+
+      // 7. Acciones principales
+      setText('lblLoadBtn', t.loadLabel);
+      setText('lblSaveBtn', t.saveLabel);
+      if (btnLoadSettings) btnLoadSettings.title = t.titleLoad;
+      if (btnSaveSettings) btnSaveSettings.title = t.titleSave;
+      if (btnUndo) btnUndo.title = t.titleUndo;
+      if (btnRedo) btnRedo.title = t.titleRedo;
+      if (btnMobileUndo) btnMobileUndo.title = t.titleUndo;
+      if (btnMobileRedo) btnMobileRedo.title = t.titleRedo;
+
+      setText('btnDownloadPNG', t.downloadPNG);
+      setText('btnDownloadSVG', t.downloadSVG);
+      setText('btnPrint', t.printPDF);
+      setText('btnReset', t.reset);
+      setText('lblCellHint', t.cellHintPrefix);
+
+      // 8. Modal de ayuda
+      setText('helpModalTitle', t.helpTitle);
+      setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.3'));
+      setText('helpDescApp', t.helpAppDesc);
+      setText('helpHeaderCredits', t.helpCreators);
+      setText('creditDevs', t.helpDevs);
+      setText('creditAI', t.helpAI);
+      setText('helpHeaderShortcuts', t.helpShortcuts);
+
+      refreshVariantSelect();
       updateSafeModeBannerText();
       render();
     }
