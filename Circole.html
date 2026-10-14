@@ -1092,7 +1092,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.3</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.4</span>
       <span class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1161,7 +1161,7 @@
               <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
             </g>
           </svg>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.3</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.4</span>
           <span id="safeModeChip" class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
         </div>
         <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
@@ -1393,10 +1393,11 @@
                 <span class="text-xs text-slate-400 font-bold w-9 text-right" id="borderOpacityVal">100%</span>
               </div>
               <div>
-				<div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
-				<span id="shapeStrokeWidthVal">4</span>px</span>
-				</div>
-				<input type="range" id="shapeStrokeWidthSlider" min="0" max="40" step="0.5" value="4" class="w-full accent-sky-500" />
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                  <span id="lblShapeStrokeWidth">Width</span>
+                  <span><span id="shapeStrokeWidthVal">4</span>px</span>
+                </div>
+                <input type="range" id="shapeStrokeWidthSlider" min="0" max="40" step="0.5" value="4" class="w-full accent-sky-500" />
               </div>
             </div>
           </div>
@@ -1454,9 +1455,9 @@
               </div>
               <div>
                 <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
-                  <span id="lblTextStrokeWidth">Width</span><span><span id="textStrokeWidthVal">4</span>%</span>
+                  <span id="lblTextStrokeWidth">Width</span><span><span id="textStrokeWidthVal">4</span>px</span>
                 </div>
-                <input type="range" id="textStrokeWidthSlider" min="0" max="20" value="4" class="w-full accent-sky-500" />
+                <input type="range" id="textStrokeWidthSlider" min="0" max="40" step="0.5" value="4" class="w-full accent-sky-500" />
               </div>
             </div>
           </div>
@@ -1722,7 +1723,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.3</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.4</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -1775,7 +1776,7 @@
       const safeMode = nativeUI || vectorBroken;
 
       return {
-        version: '5.2.3',
+        version: '5.2.4',
         hasTailwind: !nativeUI, 
         hasLucide, 
         hasOpentype,
@@ -3517,7 +3518,7 @@
       if (btnLoadSettings) btnLoadSettings.title = t.titleLoad;
       if (btnSaveSettings) btnSaveSettings.title = t.titleSave;
       if (btnUndo) btnUndo.title = t.titleUndo;
-      if (btnRedo) btnRedo.title = t.titleRedo;
+      if (btnRedo) btnRedo.title = t.titleRedo;	
       if (btnMobileUndo) btnMobileUndo.title = t.titleUndo;
       if (btnMobileRedo) btnMobileRedo.title = t.titleRedo;
 
@@ -3529,7 +3530,7 @@
 
       // 8. Modal de ayuda
       setText('helpModalTitle', t.helpTitle);
-      setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.3'));
+      setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.4'));
       setText('helpDescApp', t.helpAppDesc);
       setText('helpHeaderCredits', t.helpCreators);
       setText('creditDevs', t.helpDevs);
@@ -4128,7 +4129,8 @@
 		textStrokeColor2: textStrokeColor2.value,
 		textStrokeGradAngle: textStrokeGradAngle.value,
 		textStrokeOpacity: textStrokeOpacity.value,
-		textStrokeWidth: textStrokeWidth
+		textStrokeWidth: textStrokeWidth,
+		textStrokeUnit: 'px'
       };
       const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -4344,7 +4346,16 @@
 			textStrokeOpacityVal.textContent = `${s.textStrokeOpacity}%`;
 		  }
 		  if (s.textStrokeWidth !== undefined) {
-			textStrokeWidth = parseInt(s.textStrokeWidth, 10) || 0;
+			let rawVal = parseInt(s.textStrokeWidth, 10) || 0;
+			const isPxFile = (s.textStrokeUnit === 'px');
+			// Pre-5.2.4 files stored text stroke as % of font size. Files written
+			// by 5.2.4 carry textStrokeUnit:"px" and are read verbatim.
+			if (!isPxFile && (s.version === undefined || s.version <= 7) && rawVal <= 20) {
+			  const baseFs = parseFloat(s.sliderSize) || 130;
+			  textStrokeWidth = Math.max(0, Math.round(((baseFs * rawVal) / 100) * 2) / 2);
+			} else {
+			  textStrokeWidth = rawVal;
+			}
 			textStrokeWidthSlider.value = textStrokeWidth;
 			textStrokeWidthVal.textContent = textStrokeWidth;
 		  }
@@ -4686,7 +4697,7 @@
 
         let strokeElementHtml = '';
         if (textStrokeOn && textStrokeWidth > 0) {
-          const pxWidth = Math.max(0.5, (uniformFontSize * textStrokeWidth) / 100);
+          const pxWidth = Math.max(0.5, textStrokeWidth);
           const aStroke = parseInt(textStrokeOpacity.value, 10) / 100;
           let strokeRef = hexToRgba(textStrokeColor1.value, aStroke);
 
@@ -4790,7 +4801,7 @@
       if (!isPaperMode) {
         const text = constructLabel();
         const strokePx = (showBorder && shapeStrokeOn && shapeStrokeWidth > 0)
-          ? Math.max(0.5, (Math.min(w, h) * shapeStrokeWidth) / 100)
+          ? Math.max(0.5, shapeStrokeWidth)
           : 0;
 
         let pad = Math.ceil(strokePx);
@@ -5059,7 +5070,7 @@
 
 	  const hasStroke = textStrokeOn && textStrokeWidth > 0;
 	  if (hasStroke) {
-		const pxWidth = Math.max(0.5, (fontSize * textStrokeWidth) / 100);
+		const pxWidth = Math.max(0.5, textStrokeWidth);
 		const aStroke = parseInt(textStrokeOpacity.value, 10) / 100;
 		const exportScale = (ctx.getTransform ? ctx.getTransform().a : 2) || 2;
 
@@ -5282,7 +5293,7 @@
       } else ctx.fillStyle = cText1;
 	  
 	if (textStrokeOn && textStrokeWidth > 0) {
-        const pxWidth = Math.max(0.5, (computedFs * textStrokeWidth) / 100);
+        const pxWidth = Math.max(0.5, textStrokeWidth);
         const aStroke = parseInt(textStrokeOpacity.value, 10) / 100;
 
         // Detectar la escala real del canvas (ej. 2x) para que el lienzo auxiliar no pierda resolución
@@ -5782,7 +5793,7 @@ ${cellsMarkup}${gridMarkup}</svg>`;
         tFillOpacity = '1';
       }
 
-      const strokeW = Math.max(0.5, (fontSize * textStrokeWidth) / 100);
+      const strokeW = Math.max(0.5, textStrokeWidth);
       const sAlpha = (parseInt(textStrokeOpacity.value, 10) / 100).toFixed(2);
       let strokeMarkup = '';
 
