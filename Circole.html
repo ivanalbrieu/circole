@@ -1092,7 +1092,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.4.1</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v5.2.5</span>
       <span class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1161,7 +1161,7 @@
               <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
             </g>
           </svg>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.4.1</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v5.2.5</span>
           <span id="safeModeChip" class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
         </div>
         <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
@@ -1723,7 +1723,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.4.1</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v5.2.5</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -1732,7 +1732,7 @@
           <h4 id="helpHeaderCredits" class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Creators & Collaborators</h4>
           <div class="text-center space-y-1">
             <p><strong id="creditDevs" class="text-slate-900 dark:text-white">Lead Developers:</strong> Agustin Albrieu Livingston &amp; Ivan Albrieu Livingston</p>
-            <p><strong id="creditAI" class="text-slate-900 dark:text-white">AI Engineering Support:</strong> Gemini &amp; DeepSeek</p>
+            <p><strong id="creditAI" class="text-slate-900 dark:text-white">AI Engineering Support:</strong> Gemini, DeepSeek &amp; Claude</p>
           </div>
         </div>
 
@@ -1776,7 +1776,7 @@
       const safeMode = nativeUI || vectorBroken;
 
       return {
-        version: '5.2.4.1',
+        version: '5.2.5',
         hasTailwind: !nativeUI, 
         hasLucide, 
         hasOpentype,
@@ -2078,6 +2078,8 @@
     let currentLang = 'en';
     // Structure: { [familyName]: { normal?: ArrayBuffer, bold?: ArrayBuffer, italic?: ArrayBuffer, boldItalic?: ArrayBuffer } }
     const _uploadedFontBuffers = {};
+    // Legacy (nameID 1) family of each uploaded face, for the same-slot guard.
+    const _uploadLegacyOf = new WeakMap();
     // Families the user added via Upload Font. Survives Reset; drives the status line.
     const _uploadedFamilies = new Set();
 
@@ -2112,6 +2114,23 @@
 	function _readName(font, nameID, preferredLang) {
 	  try {
 		const table = font && font.tables && font.tables.name;
+		// opentype.js 2.x (the build loaded in <head>): tables.name is keyed by
+		// platform -> { windows: { fontFamily: { en: '…' }, … }, macintosh: { … } }.
+		// Neither of the two shapes below matches it, so every lookup used to return
+		// null (family fell back to 'UploadedFont', nameID 16/17 were never read).
+		if (table && !Array.isArray(table.names) && (table.windows || table.macintosh)) {
+		  const key = _NAME_ID_KEYS[nameID];
+		  if (!key) return null;
+		  for (const plat of ['windows', 'macintosh']) {
+			const rec = table[plat] && table[plat][key];
+			if (typeof rec === 'string' && rec) return rec;
+			if (rec && typeof rec === 'object') {
+			  const v = (preferredLang && rec[preferredLang]) || rec.en || Object.values(rec)[0];
+			  if (v) return String(v);
+			}
+		  }
+		  return null;
+		}
 		if (table && !Array.isArray(table.names) && _NAME_ID_KEYS[nameID]) {
 		  const rec = table[_NAME_ID_KEYS[nameID]];
 		  if (typeof rec === 'string') return rec || null;
@@ -2148,12 +2167,22 @@
       return ((fsSel & 0x01) !== 0) || ((mac & 0x02) !== 0);
     }
 
+    // _readName() used to return null for every field under opentype.js 2.x, so the
+    // name-table label steps below never ran and labels were always derived from
+    // weight + italic ("Regular", "Bold", "Italic", "Bold Italic"). With _readName
+    // fixed those steps would start returning the font's own strings ("Book",
+    // "Oblique", "Semilight"). Kept OFF so the Style dropdown is unchanged by the
+    // de-merge; flip to true to show the fonts' own style names.
+    const _USE_NAME_TABLE_STYLE_LABELS = false;
+
     function _readVariantLabel(font) {
       const w = _detectWeight(font);
       const italic = _detectItalic(font);
 
       // 1. nameID 17 (Typographic Subfamily) — solo si es congruente con el usWeightClass
-      const typo = _readName(font, 17, 'en');
+      //    Width words ("Narrow", "Condensed Bold") belong to the family name now
+      //    (see _familyForFace), so they are stripped from the style label.
+      const typo = _USE_NAME_TABLE_STYLE_LABELS ? _stripWidthWords(_readName(font, 17, 'en')) : null;
       if (typo && typo.trim() && !RIBBI_LABELS.has(typo.trim().toLowerCase())) {
         const isMismatch = (w === 400 && /thin|light|bold|black/i.test(typo)) ||
                            (w === 100 && !/thin/i.test(typo));
@@ -2163,7 +2192,7 @@
       }
 
       // 2. nameID 2 (Legacy Subfamily) — skip if it's a RIBBI value
-      const legacy = _readName(font, 2, 'en');
+      const legacy = _USE_NAME_TABLE_STYLE_LABELS ? _stripWidthWords(_readName(font, 2, 'en')) : null;
       if (legacy && legacy.trim() && !RIBBI_LABELS.has(legacy.trim().toLowerCase())) {
         return legacy.trim();
       }
@@ -2193,6 +2222,124 @@
       } catch (_) {}
 
       return 'UploadedFont';
+    }
+
+    // ─── Width-aware family identity (5.2.5 font de-merge) ───────────────────
+    // Bug: variants are slotted by "weight_style" only. A condensed face
+    // (Arial Narrow, DejaVu Sans Condensed…) shares nameID 16 / the OS family
+    // with its normal-width sibling AND has the same weight + style, so it
+    // landed in the same slot and, under "newer face wins", replaced it.
+    // Fix: width is part of a face's identity. Faces are grouped into families
+    // by _familyForFace(); a same-slot collision between different legacy
+    // families (optical sizes, e.g. "LM Roman 10" vs "LM Roman 12") regroups the
+    // whole family by legacy name; a true duplicate keeps the first face.
+    const _WIDTH_LABELS = { 1: 'Ultra Condensed', 2: 'Extra Condensed', 3: 'Condensed', 4: 'Semi Condensed',
+                            6: 'Semi Expanded', 7: 'Expanded', 8: 'Extra Expanded', 9: 'Ultra Expanded' };
+    const _WIDTH_WORD_SRC = '(?:ultra|extra|semi)?[\\s-]*(?:condensed|cond|narrow|compressed|compact|extended|expanded|wide)';
+    const _WIDTH_WORD_RE = new RegExp('\\b' + _WIDTH_WORD_SRC + '\\b', 'i');
+    const _WIDTH_WORD_RE_G = new RegExp('\\b' + _WIDTH_WORD_SRC + '\\b', 'gi');
+
+    function _stripWidthWords(label) {
+      if (!label) return label;
+      return String(label).replace(_WIDTH_WORD_RE_G, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function _detectWidthClass(font) {
+      const w = font && font.tables && font.tables.os2 && font.tables.os2.usWidthClass;
+      return (typeof w === 'number' && w >= 1 && w <= 9) ? w : 5;
+    }
+
+    function _readLegacyFamilyName(font) {
+      const v = _readName(font, 1, 'en');
+      return (v && v.trim()) ? v.trim() : null;
+    }
+
+    // Family a face belongs to on its own (before collision handling).
+    //   normal width (usWidthClass 5) -> typographic family (nameID 16, else 1)
+    //   condensed / expanded          -> legacy family (nameID 1): "Arial Narrow",
+    //                                    "DejaVu Sans Condensed"; if that is just
+    //                                    the typographic name and carries no width
+    //                                    word, typo + OS/2 width label.
+    function _familyForFace(font) {
+      const typo = _readFamilyName(font);
+      const wc = _detectWidthClass(font);
+      if (wc === 5) return typo;
+      const legacy = _readLegacyFamilyName(font);
+      if (legacy && legacy.toLowerCase() !== typo.toLowerCase()) return legacy;
+      if (_WIDTH_WORD_RE.test(typo)) return typo;
+      return `${typo} ${_WIDTH_LABELS[wc] || 'Alt Width'}`;
+    }
+
+    // Cheap, blob-free family name for the scan dropdown. queryLocalFonts() may
+    // report "Arial" for Arial Narrow faces (style "Narrow", fullName "Arial Narrow
+    // Bold"); anything a face adds beyond the family name that is a width word
+    // becomes part of the family name.
+    function _scanFamilyOf(fd) {
+      const base = String((fd && fd.family) || '').trim();
+      if (!base) return base;
+      if (_WIDTH_WORD_RE.test(base)) return base;
+      const full = String(fd.fullName || '');
+      const tail = full.toLowerCase().startsWith(base.toLowerCase()) ? full.slice(base.length) : full;
+      const m = (tail + ' ' + String(fd.style || '')).match(_WIDTH_WORD_RE);
+      if (!m) return base;
+      const word = m[0].trim().replace(/^semi\s*-?\s*/i, 'Semi ').replace(/^extra\s*-?\s*/i, 'Extra ')
+                       .replace(/^ultra\s*-?\s*/i, 'Ultra ').replace(/\bcond\b/i, 'Condensed')
+                       .replace(/\s+/g, ' ');
+      return `${base} ${word.charAt(0).toUpperCase()}${word.slice(1)}`.replace(/\b(semi|extra|ultra) (\w)/gi,
+        (_, a, b) => `${a.charAt(0).toUpperCase()}${a.slice(1).toLowerCase()} ${b.toUpperCase()}`);
+    }
+
+    // items: [{ parsed, buf, desc, src }]  ->  [{ name, slots: {key: item}, items: [...] }]
+    function _groupFacesIntoFamilies(items) {
+      const info = items.map((it, i) => {
+        const legacy = _readLegacyFamilyName(it.parsed) || _readFamilyName(it.parsed);
+        return { it, i, fam: _familyForFace(it.parsed), legacy, wc: _detectWidthClass(it.parsed) };
+      });
+      // Deterministic order: normal width first, then closeness to normal, then legacy name.
+      info.sort((a, b) =>
+        ((a.wc === 5 ? 0 : 1) - (b.wc === 5 ? 0 : 1)) ||
+        (Math.abs(a.wc - 5) - Math.abs(b.wc - 5)) ||
+        a.legacy.localeCompare(b.legacy) || (a.i - b.i));
+
+      // Pass 1: group by width-aware family.
+      const byFam = new Map();
+      for (const r of info) {
+        const k = r.fam.toLowerCase();
+        if (!byFam.has(k)) byFam.set(k, { name: r.fam, rows: [] });
+        byFam.get(k).rows.push(r);
+      }
+      // Pass 2: a same-slot collision between DIFFERENT legacy families (optical
+      // sizes, mastering variants) regroups that whole family by legacy name.
+      const finalRows = new Map();
+      for (const g of byFam.values()) {
+        const seen = new Map(); let regroup = false;
+        for (const r of g.rows) {
+          const prev = seen.get(r.it.desc.key);
+          if (prev && prev.legacy.toLowerCase() !== r.legacy.toLowerCase()) { regroup = true; break; }
+          if (!prev) seen.set(r.it.desc.key, r);
+        }
+        for (const r of g.rows) {
+          const name = regroup ? r.legacy : g.name;
+          const k = name.toLowerCase();
+          if (!finalRows.has(k)) finalRows.set(k, { name, rows: [] });
+          finalRows.get(k).rows.push(r);
+        }
+      }
+      // Pass 3: slot faces. True duplicates (same family, same slot): first wins.
+      const out = [];
+      for (const g of finalRows.values()) {
+        const slots = {}; const kept = [];
+        for (const r of g.rows) {
+          const key = r.it.desc.key;
+          if (slots[key]) {
+            console.warn(`[Circole] "${g.name}" has two faces for ${key}; keeping the first, ignoring ${r.legacy}.`);
+            continue;
+          }
+          slots[key] = r.it; kept.push(r.it);
+        }
+        out.push({ name: g.name, slots, items: kept });
+      }
+      return out;
     }
 
     // Returns { key, weight, style, label } — exact, from the font file.
@@ -2823,7 +2970,28 @@
     }
 
 	// Populates _uploadedFontBuffers[family] from a queryLocalFonts() scan.
-    // One descriptor per face; grouped by the font's own nameID 16/1.
+    // Every candidate face is parsed, then grouped by its own metadata
+    // (_groupFacesIntoFamilies): width variants (Arial Narrow) and optical
+    // sizes are separate families, never extra faces of the normal family.
+    let _localFaceListCache = null;
+    const _localFamilySources = new Map();   // family (lower) -> Set of OS family names (lower)
+
+    async function _getLocalFaceList() {
+      if (!_localFaceListCache) _localFaceListCache = await window.queryLocalFonts();
+      return _localFaceListCache;
+    }
+
+    function _ensureCustomFontOption(name) {
+      const clean = String(name).replace(/['"]/g, '');
+      for (const opt of fontSelect.options) {
+        if (getCleanFontFamily(opt.value).toLowerCase() === clean.toLowerCase()) return;
+      }
+      const opt = document.createElement('option');
+      opt.value = `"${clean}", sans-serif`;
+      opt.textContent = clean;
+      customFontsGroup.appendChild(opt);
+    }
+
     async function _ensureLocalFontBuffer(family) {
       if (!family) return;
       if (isSystemFallback(family)) return;
@@ -2831,30 +2999,65 @@
       if (_uploadedFontBuffers[family]) return;
       if (!('queryLocalFonts' in window)) return;
       try {
-        const allFonts = await window.queryLocalFonts();
-        const faces = allFonts.filter(f => f.family.toLowerCase() === family.toLowerCase());
-        if (!faces.length) return;
+        const allFonts = await _getLocalFaceList();
+        const want = family.toLowerCase();
+        const srcs = _localFamilySources.get(want) || new Set([want]);
+        const faces = allFonts.filter(f => {
+          const raw = String(f.family || '').toLowerCase();
+          return srcs.has(raw) || raw === want || _scanFamilyOf(f).toLowerCase() === want;
+        });
+        if (!faces.length) { _uploadedFontBuffers[family] = {}; return; }
 
-        const variantMap = {};
+        // Parse every candidate once.
+        const items = [];
         for (const face of faces) {
           try {
             const buf = await face.blob().then(b => b.arrayBuffer());
             const parsed = opentype.parse(buf);
             if (!parsed || !parsed.supported) continue;
-
             const desc = _classifyVariant(parsed);
             desc.buf = buf;
-            // Overwrite policy: newer face wins for the same slot.
-            variantMap[desc.key] = desc;
-			
-            try {
-              const localFace = new FontFace(family, buf, {
-                weight: String(desc.weight),
-                style: desc.style
-              });
-              await localFace.load();
-              document.fonts.add(localFace);
-            } catch (_) {}
+            items.push({ parsed, buf, desc, scanName: _scanFamilyOf(face).toLowerCase(),
+                         rawFamily: String(face.family || '').toLowerCase() });
+          } catch (_) {}
+        }
+        if (!items.length) return;
+
+        const groups = _groupFacesIntoFamilies(items);
+
+        // The group that was asked for: by exact name, else by the name the scan
+        // list showed, else the largest group.
+        const mine =
+          groups.find(g => g.name.toLowerCase() === want) ||
+          groups.find(g => g.items.some(it => it.scanName === want)) ||
+          groups.slice().sort((a, b) => b.items.length - a.items.length)[0];
+        if (!mine) { _uploadedFontBuffers[family] = {}; return; }
+
+        // Every OTHER family the parse split off (e.g. "Arial Narrow" when the OS
+        // filed it under "Arial") gets a dropdown entry and a source list, so it is
+        // selectable even if the scan never listed it. Its buffers are built when
+        // the user selects it.
+        for (const g of groups) {
+          if (g === mine) continue;
+          const gl = g.name.toLowerCase();
+          if (!_localFamilySources.has(gl)) _localFamilySources.set(gl, new Set([gl]));
+          for (const it of g.items) _localFamilySources.get(gl).add(it.rawFamily);
+          _ensureCustomFontOption(g.name);
+        }
+
+        const variantMap = {};
+        for (const it of mine.items) variantMap[it.desc.key] = it.desc;
+
+        // Register the CSS faces only for the faces kept in THIS family, so a
+        // condensed sibling can never shadow the normal face in the preview.
+        for (const it of mine.items) {
+          try {
+            const localFace = new FontFace(family, it.buf, {
+              weight: String(it.desc.weight),
+              style: it.desc.style
+            });
+            await localFace.load();
+            document.fonts.add(localFace);
           } catch (_) {}
         }
         if (Object.keys(variantMap).length) {
@@ -3529,7 +3732,7 @@
 
       // 8. Modal de ayuda
       setText('helpModalTitle', t.helpTitle);
-      setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.4.1'));
+      setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.5'));
       setText('helpDescApp', t.helpAppDesc);
       setText('helpHeaderCredits', t.helpCreators);
       setText('creditDevs', t.helpDevs);
@@ -3722,7 +3925,26 @@
       document.documentElement.style.setProperty('--active-font', e.target.value);
       const family = getCleanFontFamily(e.target.value);
       await ensureVariantMapFor(e.target.value);
-      selectedVariant = _uploadedFontBuffers[family] ? Object.keys(_uploadedFontBuffers[family])[0] || '400_normal' : '400_normal';
+      // Default to the first item the Style dropdown will show, so the
+      // displayed selection and the internal one never disagree. Uses the
+      // same sort as refreshVariantSelect: weight ascending, normal before
+      // italic — so 400_normal wins when the family has it.
+      {
+        const _map = _uploadedFontBuffers[family];
+        if (_map) {
+          const _sorted = Object.keys(_map).sort((a, b) => {
+            const ma = a.match(/^(\d+)_(normal|italic)$/);
+            const mb = b.match(/^(\d+)_(normal|italic)$/);
+            if (!ma || !mb) return a.localeCompare(b);
+            const wa = parseInt(ma[1], 10), wb = parseInt(mb[1], 10);
+            if (wa !== wb) return wa - wb;
+            return ma[2] === 'normal' ? -1 : 1;
+          });
+          selectedVariant = _sorted[0] || '400_normal';
+        } else {
+          selectedVariant = '400_normal';
+        }
+      }
       refreshVariantSelect();
       updateVectorIndicator(family);
       render();
@@ -3820,7 +4042,7 @@
 
         let family;
         try {
-          family = _readFamilyName(parsedForMeta);
+          family = _familyForFace(parsedForMeta);
         } catch (_) {
           skipped++;
           continue;
@@ -3843,12 +4065,26 @@
         }
         if (!desc || !desc.key) { skipped++; continue; }
         desc.buf = buf;
+        // Same slot already filled by a face with a DIFFERENT legacy family
+        // (optical sizes etc.): file it as its own family instead of overwriting.
+        // Re-uploading the same face still replaces it.
+        try {
+          const legacyName = _readLegacyFamilyName(parsedForMeta) || family;
+          const prevDesc = _uploadedFontBuffers[family][desc.key];
+          const prevLegacy = prevDesc && _uploadLegacyOf.get(prevDesc);
+          if (prevDesc && prevLegacy && prevLegacy.toLowerCase() !== legacyName.toLowerCase()
+              && legacyName.toLowerCase() !== family.toLowerCase()) {
+            family = legacyName;
+            if (!_uploadedFontBuffers[family]) _uploadedFontBuffers[family] = {};
+          }
+          _uploadLegacyOf.set(desc, legacyName);
+        } catch (_) {}
         _uploadedFontBuffers[family][desc.key] = desc;
         _uploadedFamilies.add(family);
 
         // Register the CSS @font-face so preview can render it.
         try {
-          const face = new FontFace(cssFamily, buf, {
+          const face = new FontFace(String(family).replace(/['"]/g, ''), buf, {
             weight: String(desc.weight),
             style: desc.style
           });
@@ -3926,10 +4162,21 @@
       try {
         btnLoadFonts.textContent = t.btnScanning;
         const fonts = await window.queryLocalFonts();
+        _localFaceListCache = fonts;
+        _localFamilySources.clear();
 
-        // Provisional family list — OS-derived, may merge/split differently
-        // than the font's own name table. Self-corrects on first parse.
-        const names = Array.from(new Set(fonts.map(f => f.family))).sort();
+        // Provisional family list — OS-derived plus width words from each face's
+        // style / full name ("Arial" + "Narrow Bold" -> "Arial Narrow"). Self-corrects
+        // on first parse (_ensureLocalFontBuffer adds any family it splits off).
+        const names = Array.from(new Set(fonts.map(f => {
+          const nm = _scanFamilyOf(f);
+          if (nm) {
+            const k = nm.toLowerCase();
+            if (!_localFamilySources.has(k)) _localFamilySources.set(k, new Set([k]));
+            _localFamilySources.get(k).add(String(f.family || '').toLowerCase());
+          }
+          return nm;
+        }).filter(Boolean))).sort();
         if (!names.length) {
           btnLoadFonts.textContent = t.btnNoFonts;
           setTimeout(() => { btnLoadFonts.textContent = t.loadFonts; }, 2000);
