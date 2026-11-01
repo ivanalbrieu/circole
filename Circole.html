@@ -49,7 +49,7 @@
       display: none !important;
     }
 
-    /* Estilos base de body exclusivos para Modo Nativo / Safe Mode (no afectan Tailwind online) */
+    /* Base body styles exclusive to Native UI / Safe Mode (do not affect Tailwind online) */
     html[data-circole-native-ui] body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
       background: #f0f0f0 !important;
@@ -62,7 +62,7 @@
       overflow-x: hidden !important;
     }
 
-    /* 1. ESCRITORIO / HORIZONTAL AMPLIO (Ancho >= 769px) */
+    /* 1. DESKTOP / WIDE HORIZONTAL (Width >= 769px) */
     @media (min-width: 769px) {
       html[data-circole-native-ui] body {
         flex-direction: row !important;
@@ -755,7 +755,7 @@
       font-size: 0.75rem !important;
     }
 
-    /* Encabezado Fijo del Modal: Ícono y Título en línea horizontal limpia */
+    /* Modal Header: Icon and Title in a clean horizontal line */
     html[data-circole-native-ui] #helpModal > div > div:first-child {
       display: flex !important;
       justify-content: space-between !important;
@@ -831,14 +831,14 @@
       box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* Ocultar botones de tema si no aplican en nativo o modo seguro */
+    /* Hide theme toggle buttons if not applicable in native or safe mode */
     html[data-circole-native-ui] #btnThemeToggle,
     html[data-circole-native-ui] #btnMobileTheme,
     html[data-circole-native-ui] .top-controls > div.w-px {
       display: none !important;
     }
 
-    /* 2. Barra de Zoom inferior central */
+    /* 2. Bottom-center Zoom Bar */
     html[data-circole-native-ui] #previewViewport > div:last-child {
       position: absolute !important;
       bottom: 1rem !important;
@@ -865,7 +865,7 @@
        `.safe-mode-chip` / `.safe-mode-banner` are already gated by the
        `html[data-circole-safe-mode]` attribute on show/hide. */
 
-    /* 3. Etiquetas de Estado Tipográfico (Vector / Live Text) clásicas en Safe Mode */
+    /* 3. Typographic Status Badges (Vector / Live Text) classic in Safe Mode */
     html[data-circole-native-ui] #fontVectorStatus {
       font-size: 0.7rem !important;
       font-weight: bold !important;
@@ -875,7 +875,7 @@
       padding: 0.1rem 0.3rem !important;
     }
 
-    /* Si el estado es de advertencia (Live Text / No vector) */
+    /* Warning status styling (Live Text / No vector) */
     html[data-circole-native-ui] #fontVectorStatus.bg-amber-100,
     html[data-circole-native-ui] #fontVectorStatus[class*="amber"] {
       background: #fff3cd !important;
@@ -883,7 +883,7 @@
       border-color: #856404 !important;
     }
 
-    /* Si el estado es correcto (Vector) */
+    /* Success status styling (Vector) */
     html[data-circole-native-ui] #fontVectorStatus.bg-emerald-100,
     html[data-circole-native-ui] #fontVectorStatus[class*="emerald"] {
       background: #e2f0d9 !important;
@@ -898,13 +898,20 @@
        glyph instead — no emoji, no CDN, no font dependency.
        ========================================================================== */
 
-    /* --- Info button glyph (Help, in top-controls and mobile header) --- */
+    /* --- Info & Update button glyphs (in top-controls and mobile header) --- */
     html[data-lucide-dead] #btnOpenHelp::before,
     html[data-lucide-dead] #btnMobileHelp::before {
       content: "ℹ";
       font-size: 14px;
       line-height: 1;
       font-weight: 400;
+    }
+    html[data-lucide-dead] #btnCheckUpdate::before,
+    html[data-lucide-dead] #btnMobileCheckUpdate::before {
+      content: "↺";
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 700;
     }
 
     /* --- Undo / Redo controls (Desktop & Mobile) --- */
@@ -1099,8 +1106,11 @@
       <span class="safe-mode-chip"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
-      <button id="btnMobileHelp" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+      <button id="btnMobileHelp" title="Help & Credits" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
         <i data-lucide="info" class="w-4 h-4"></i>
+      </button>
+      <button id="btnMobileCheckUpdate" title="Check for Updates" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
       </button>
       <button id="btnMobileUndo" title="Undo (Ctrl+Z)" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center" disabled>
         <i data-lucide="undo-2" class="w-4 h-4"></i>
@@ -1429,7 +1439,7 @@
             </div>
           </div>
 
-          <!-- 4. Text Stroke (Movido desde Typography) -->
+          <!-- 4. Text Stroke (Moved from Typography) -->
           <div id="textStrokeGroup" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
               <input type="checkbox" id="textStrokeEnabled" class="rounded accent-sky-500" />
@@ -1640,6 +1650,9 @@
       <button id="btnOpenHelp" title="Help & Credits" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center">
         <i data-lucide="info" class="w-4 h-4"></i>
       </button>
+      <button id="btnCheckUpdate" title="Check for Updates" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+      </button>
       <div class="w-px h-4 bg-slate-200 dark:bg-slate-800"></div>
       <button id="btnUndo" title="Undo (Ctrl+Z)" class="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center" disabled>
         <i data-lucide="undo-2" class="w-4 h-4"></i>
@@ -1781,13 +1794,13 @@
         <div class="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-amber-900 dark:text-amber-200">
           <i data-lucide="arrow-up-circle" class="w-6 h-6 shrink-0 text-amber-600 dark:text-amber-400"></i>
           <div>
-            <div class="font-bold text-sm">A new version is available!</div>
+            <div class="font-bold text-sm" id="updateTitleBadge">A new version is available!</div>
             <div class="text-[11px] opacity-80" id="updateVersionInfo">Circole v5.2.6 is ready to install.</div>
           </div>
         </div>
 
         <div id="updateReleaseNotesContainer" class="hidden space-y-1">
-          <div class="font-bold text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Release Notes</div>
+          <div class="font-bold text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider" id="updateReleaseNotesHeader">Release Notes</div>
           <div id="updateReleaseNotes" class="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl font-mono text-[11px] whitespace-pre-wrap max-h-40 overflow-y-auto"></div>
         </div>
 
@@ -2031,6 +2044,21 @@
         helpCreators: "Creators & Collaborators",
         helpDevs: "Lead Developers:", helpAI: "AI Engineering Support:",
         helpShortcuts: "Keyboard Shortcuts", helpClose: "Close",
+        titleCheckUpdate: "Check for Updates",
+        updateChecking: "Checking for updates...",
+        updateUpToDate: "Circole is up to date!",
+        updateModalTitle: "Update Available",
+        updateNewVersion: "A new version is available!",
+        updateReleaseNotesHeader: "Release Notes",
+        updateLocalDesc: "You are running Circole locally. Click below to download the latest release and replace your local file.",
+        updateWebDesc: "A new version of Circole has been deployed. Refresh your browser to load the latest release.",
+        updateActionReplace: "Download & Replace",
+        updateActionRefresh: "Refresh to Update",
+        updateLater: "Later",
+        updateFetching: "Fetching release...",
+        updateUpdated: "Updated!",
+        updateDownloaded: "Downloaded!",
+        updateAlertSuccess: "Circole successfully updated! The file has been overwritten. Click OK to reload.",
 		vecPaths: "✓ Vector",
         liveText: "⚠ Live Text",
 		safeModeTitle: "Safe Mode Active",
@@ -2094,6 +2122,21 @@
         helpCreators: "Creadores y Colaboradores",
         helpDevs: "Desarrolladores Principales:", helpAI: "Soporte de Ingeniería IA:",
         helpShortcuts: "Atajos de Teclado", helpClose: "Cerrar",
+        titleCheckUpdate: "Buscar Actualizaciones",
+        updateChecking: "Buscando actualizaciones...",
+        updateUpToDate: "¡Circole está actualizado!",
+        updateModalTitle: "Actualización Disponible",
+        updateNewVersion: "¡Hay una nueva versión disponible!",
+        updateReleaseNotesHeader: "Notas de la Versión",
+        updateLocalDesc: "Estás ejecutando Circole de forma local. Haz clic abajo para descargar la última versión y reemplazar tu archivo local.",
+        updateWebDesc: "Se ha publicado una nueva versión de Circole. Actualiza la página para cargar la versión más reciente.",
+        updateActionReplace: "Descargar y Reemplazar",
+        updateActionRefresh: "Recargar y Actualizar",
+        updateLater: "Más tarde",
+        updateFetching: "Obteniendo actualización...",
+        updateUpdated: "¡Actualizado!",
+        updateDownloaded: "¡Descargado!",
+        updateAlertSuccess: "¡Circole se actualizó correctamente! El archivo local ha sido reemplazado. Haz clic en Aceptar para recargar.",
 		vecPaths: "✓ Vector",
         liveText: "⚠ Texto en vivo",
 		safeModeTitle: "⚠ Modo Seguro Activo",
@@ -2226,7 +2269,7 @@
       const w = _detectWeight(font);
       const italic = _detectItalic(font);
 
-      // 1. nameID 17 (Typographic Subfamily) — solo si es congruente con el usWeightClass
+      // 1. nameID 17 (Typographic Subfamily) — only if congruent with usWeightClass
       //    Width words ("Narrow", "Condensed Bold") belong to the family name now
       //    (see _familyForFace), so they are stripped from the style label.
       const typo = _USE_NAME_TABLE_STYLE_LABELS ? _stripWidthWords(_readName(font, 17, 'en')) : null;
@@ -2244,7 +2287,7 @@
         return legacy.trim();
       }
 
-      // 3. Formato canónico: peso 400 con cursiva se etiqueta 'Italic' (no 'Regular Italic')
+      // 3. Canonical format: weight 400 with italic is labeled 'Italic' (not 'Regular Italic')
       const base = WEIGHT_LABELS[w] || String(w);
       if (italic) {
         return (w === 400) ? 'Italic' : `${base} Italic`;
@@ -2774,7 +2817,7 @@
       if (!t || !t.variants) return label;
 
       let result = label;
-      // Reemplaza cada término de peso y estilo por su equivalente localizado
+      // Replace each weight and style term with its localized equivalent
       for (const [enTerm, esTerm] of Object.entries(t.variants)) {
         const regex = new RegExp(`\\b${enTerm}\\b`, 'g');
         result = result.replace(regex, esTerm);
@@ -2891,7 +2934,7 @@
         const desc = map[key];
         const opt = document.createElement('option');
         opt.value = key;
-        // Traduce únicamente el texto visible en pantalla (ej. "Negrita Cursiva")
+        // Translate only the screen-visible text (e.g. "Bold Italic")
         opt.textContent = _translateVariantLabel(desc.label || key);
         if (key === selectedVariant) opt.selected = true;
         variantSelect.appendChild(opt);
@@ -2947,17 +2990,17 @@
 	  const availability = (env && env.googleFontsAvailable) || {};
 	  if (isSystemFallback(cleanFont)) return null;
 
-	  // 1. Prioridad absoluta: si la fuente está subida/en memoria, nunca sustituir a sistema
+	  // 1. Absolute priority: if the font is uploaded/in memory, never substitute with system font
 	  const hasBuffer = !!(_uploadedFontBuffers && _uploadedFontBuffers[cleanFont]);
 	  if (hasBuffer) return null;
 
-	  // 2. Solo si no está en memoria, verificar si es de Google y está caída o sin conexión
+	  // 2. Only if not in memory, check if it's a Google font and currently down or offline
 	  if (cleanFont in GOOGLE_FONT_TTF_URLS) {
 		if (env && (env.isOffline || (cleanFont in availability && availability[cleanFont] === false))) {
 		  const cls = FONT_FALLBACK_CLASS[cleanFont] || 'sans';
 		  return { to: FALLBACK_FAMILIES[cls], reason: 'google-offline' };
 		}
-		return null; // Google font disponible online
+		return null; // Google font available online
 	  }
 
 	  const cls = classifyFontToSystem(cleanFont);
@@ -3492,7 +3535,7 @@
 
     previewViewport.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
-        // Bloquear comportamiento nativo de zoom de página en el navegador
+        // Prevent browser's native page-zoom gesture
         e.preventDefault();
         pinchInitialDistance = getTouchDistance(e.touches[0], e.touches[1]);
         pinchInitialZoom = currentZoom;
@@ -3666,7 +3709,7 @@
         if (el && txt !== undefined) el.textContent = txt;
       };
 
-      // Pestañas del acordeón
+      // Accordion tabs
       setText('txtTabNumber', t.tabNumber);
       setText('txtTabShape', t.tabShape);
       setText('txtTabCanvas', t.tabCanvas);
@@ -3675,14 +3718,14 @@
       setText('txtTabShadow', t.tabShadow);
       setText('lblLang', t.langText);
 
-      // 1. Número y Etiqueta
+      // 1. Number & Label
       setText('lblNumber', t.numberLabel);
       setText('lblAffix', t.affixLabel);
       if (inputPrefix) inputPrefix.placeholder = t.prefixPlaceholder;
       if (inputSuffix) inputSuffix.placeholder = t.suffixPlaceholder;
       setText('lblJump', t.jumpLabel);
 
-      // 2. Figura y Marco
+      // 2. Shape & Frame
       setText('lblFrame', t.frameLabel);
       setText('btnBorderOn', t.showFrame);
       setText('btnBorderOff', t.noFrame);
@@ -3693,7 +3736,7 @@
       setText('lblHeight', t.height);
       setText('lblRound', t.roundness);
 
-      // 3. Modo Papel
+      // 3. Paper Mode
       setText('lblCanvasMode', t.canvasMode);
       setText('btnModeFit', t.fitContent);
       setText('btnModePaper', t.paperSheet);
@@ -3707,7 +3750,7 @@
       setText('lblNavHint', t.navHint);
       setText('lblPaperLetter', t.paperLetter);
 
-      // 4. Colores y Contornos
+      // 4. Colors & Strokes
       setText('lblBgType', t.bgFill);
       setText('lblTextType', t.textFill);
       setText('lblBorderType', t.borderFill);
@@ -3717,7 +3760,7 @@
       setText('lblTextOpacity', t.opacity);
       setText('lblBorderOpacity', t.opacity);
 
-      // Botones Solid / Gradient (respetando sus clases y estructura)
+      // Solid / Gradient buttons (preserving their classes and structure)
       if (btnBgSolid) btnBgSolid.textContent = t.solid;
       if (btnBgGrad) btnBgGrad.textContent = t.gradient;
       if (btnBorderSolid) btnBorderSolid.textContent = t.solid;
@@ -3731,13 +3774,13 @@
       if (btnTextShadowSolid) btnTextShadowSolid.textContent = t.solid;
       if (btnTextShadowGrad) btnTextShadowGrad.textContent = t.gradient;
 
-      // Contorno de texto
+      // Text stroke
       setText('lblEnableTextStroke', t.enableTextStroke);
       setText('lblTextStrokeType', t.textStrokeFill);
       setText('lblTextStrokeWidth', t.textStrokeWidth);
       setText('lblTextStrokeOpacity', t.opacity);
 
-      // 5. Tipografía
+      // 5. Typography
       setText('lblFontFamily', t.fontFamily);
       setText('lblStyle', t.style);
       setText('lblFontSize', t.fontSize);
@@ -3746,7 +3789,7 @@
       setText('btnLoadFonts', t.loadFonts);
       setText('btnUploadFont', t.uploadFont);
 
-      // 6. Sombras
+      // 6. Shadows
       setText('lblEnableShapeShadow', t.enableShapeShadow);
       setText('lblEnableTextShadow', t.enableTextShadow);
       setText('lblShapeShadowType', t.shadowFill);
@@ -3761,7 +3804,7 @@
       setText('lblTextShadowAngle', t.angle);
       setText('lblSvgRasterShadowNote', t.svgRasterShadowNote || '');
 
-      // 7. Acciones principales
+      // 7. Main actions
       setText('lblLoadBtn', t.loadLabel);
       setText('lblSaveBtn', t.saveLabel);
       if (btnLoadSettings) btnLoadSettings.title = t.titleLoad;
@@ -3770,6 +3813,10 @@
       if (btnRedo) btnRedo.title = t.titleRedo;
       if (btnMobileUndo) btnMobileUndo.title = t.titleUndo;
       if (btnMobileRedo) btnMobileRedo.title = t.titleRedo;
+      const btnCheckUpdateEl = document.getElementById('btnCheckUpdate');
+      const btnMobileCheckUpdateEl = document.getElementById('btnMobileCheckUpdate');
+      if (btnCheckUpdateEl) btnCheckUpdateEl.title = t.titleCheckUpdate || 'Check for Updates';
+      if (btnMobileCheckUpdateEl) btnMobileCheckUpdateEl.title = t.titleCheckUpdate || 'Check for Updates';
 
       setText('btnDownloadPNG', t.downloadPNG);
       setText('btnDownloadSVG', t.downloadSVG);
@@ -3777,7 +3824,7 @@
       setText('btnReset', t.reset);
       setText('lblCellHint', t.cellHintPrefix);
 
-      // 8. Modal de ayuda
+      // 8. Help modal
       setText('helpModalTitle', t.helpTitle);
       setText('helpHeaderApp', 'Circole v' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version ? window.__CIRCOLE_ENV.version : '5.2.6'));
       setText('helpDescApp', t.helpAppDesc);
@@ -3785,6 +3832,11 @@
       setText('creditDevs', t.helpDevs);
       setText('creditAI', t.helpAI);
       setText('helpHeaderShortcuts', t.helpShortcuts);
+
+      // 9. Update modal (if visible or active)
+      if (typeof window.__CIRCOLE_UPDATE_I18N === 'function') {
+        window.__CIRCOLE_UPDATE_I18N(lang);
+      }
 
       refreshVariantSelect();
       updateSafeModeBannerText();
@@ -3918,7 +3970,7 @@
     // Sliders y números (escuchan input)
     [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgOpacity, textOpacity, borderOpacity].forEach(el => el.addEventListener('input', render));
 
-    // Inputs de color (Bug B3: escuchan input para preview y change para commit inmediato en historial)
+    // Color pickers (Bug B3: listen to input for live preview and change for immediate history commit)
     const colorPickers = [
       bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2,
       shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2,
@@ -4506,8 +4558,8 @@
             let rawVal = parseFloat(s.shapeStrokeWidth);
             if (isNaN(rawVal)) rawVal = 4;
 
-            // Regla de migración % -> px:
-            // Si el archivo es v6 o v7 antiguo donde el valor se guardaba en escala porcentual (<= 20%):
+            // Migration rule % -> px:
+            // If the settings file is legacy v6 or v7 where stroke width was stored as percentage (<= 20%):
             const isLegacyPercent = (s.version === undefined || s.version <= 7) && rawVal <= 20;
             if (isLegacyPercent) {
               const baseW = parseFloat(s.sliderWidth) || 340;
@@ -4791,7 +4843,7 @@
       }
       sizeVal.textContent = uniformFontSize;
 
-      // Control de visibilidad de controles según estado del marco y forma
+      // Control visibility of controls based on frame and shape status
       const shapeTypeSec = document.getElementById('shapeTypeSection');
       if (shapeTypeSec) {
         shapeTypeSec.style.display = showBorder ? 'block' : 'none';
@@ -5273,14 +5325,14 @@
           ? cssLinearGradient(cx - cw/2, cy - ch/2, cw, ch, parseInt(bgAngle.value, 10), cBg1, cBg2)
           : cBg1;
 
-        // 1. RELLENO BASE
+        // 1. BASE FILL
         ctx.save();
         drawShapePath(cx, cy, cw, ch);
         ctx.fillStyle = bgStyle;
         ctx.fill();
         ctx.restore();
 
-        // 2. CONTORNO EXTERIOR PURO (Vectorial nítido con regla evenodd)
+        // 2. PURE OUTER STROKE (Crisp vector using evenodd rule)
         if (shapeStrokeOn && shapeStrokeWidth > 0) {
           const strokePx = Math.max(0.5, shapeStrokeWidth);
           const aStroke = parseInt(borderOpacity.value, 10) / 100;
@@ -5446,14 +5498,14 @@
           ? cssLinearGradient(cx - w/2, cy - h/2, w, h, parseInt(bgAngle.value, 10), cBg1, cBg2)
           : cBg1;
 
-        // 1. RELLENO BASE
+        // 1. BASE FILL
         ctx.save();
         drawShapePath(cx, cy, w, h);
         ctx.fillStyle = bgStyle;
         ctx.fill();
         ctx.restore();
 
-        // 2. CONTORNO EXTERIOR PURO (Vectorial nítido con regla evenodd)
+        // 2. PURE OUTER STROKE (Crisp vector using evenodd rule)
         if (shapeStrokeOn && shapeStrokeWidth > 0) {
           const strokePx = Math.max(0.5, shapeStrokeWidth);
           const aStroke = parseInt(borderOpacity.value, 10) / 100;
@@ -5461,14 +5513,14 @@
           ctx.save();
           ctx.beginPath();
           if (isRound) {
-            // Anillo exterior
+            // Outer ring
             ctx.ellipse(cx, cy, w/2 + strokePx, h/2 + strokePx, 0, 0, Math.PI * 2);
-            // Anillo interior (hueco)
+            // Inner ring (hollow)
             ctx.ellipse(cx, cy, w/2, h/2, 0, 0, Math.PI * 2);
           } else {
-            // Rectángulo exterior
+            // Outer rounded rect
             ctx.roundRect(cx - w/2 - strokePx, cy - h/2 - strokePx, w + strokePx * 2, h + strokePx * 2, r + strokePx);
-            // Rectángulo interior (hueco)
+            // Inner rounded rect (hollow)
             ctx.roundRect(cx - w/2, cy - h/2, w, h, r);
           }
 
@@ -5587,7 +5639,7 @@
         const pxWidth = Math.max(0.5, textStrokeWidth);
         const aStroke = parseInt(textStrokeOpacity.value, 10) / 100;
 
-        // Detectar la escala real del canvas (ej. 2x) para que el lienzo auxiliar no pierda resolución
+        // Detect real canvas scale (e.g. 2x) so scratch canvas maintains full resolution
         const exportScale = (ctx.getTransform ? ctx.getTransform().a : 2) || 2;
 
         const m = ctx.measureText(text);
@@ -5597,7 +5649,7 @@
         const sw = Math.ceil(tw + pad * 2);
         const sh = Math.ceil(th + pad * 2);
 
-        // Lienzo auxiliar dimensionado con la densidad de píxeles real (2x)
+        // Scratch canvas dimensioned to real pixel density (2x)
         const scratch = document.createElement('canvas');
         scratch.width = Math.ceil(sw * exportScale);
         scratch.height = Math.ceil(sh * exportScale);
@@ -5623,12 +5675,12 @@
         }
         sctx.strokeText(text, scx, scy);
 
-        // Perforar el interior para dejar únicamente el trazo exterior
+        // Punch out the interior text to leave only the pure outer stroke
         sctx.globalCompositeOperation = 'destination-out';
         sctx.fillText(text, scx, scy);
         sctx.globalCompositeOperation = 'source-over';
 
-        // Dibujar en el lienzo principal mapeando 1:1 los píxeles de alta resolución
+        // Draw onto the main canvas with 1:1 pixel mapping
         ctx.drawImage(scratch, cx - sw / 2, cy - sh / 2, sw, sh);
       }
 
@@ -6136,7 +6188,7 @@ ${cellsMarkup}${gridMarkup}</svg>`;
 		cleanFont, weight, style
 	  );
 
-	  // Calcular el grosor exterior del trazo de figura si está activo
+	  // Compute outer stroke thickness if active
 	  const strokePx = (showBorder && shapeStrokeOn && shapeStrokeWidth > 0)
 	    ? Math.max(0.5, shapeStrokeWidth)
 	    : 0;
@@ -6147,7 +6199,7 @@ ${cellsMarkup}${gridMarkup}</svg>`;
 	  const sBlur = parseInt(shapeShadowBlur.value, 10);
 	  const tBlur = parseInt(textShadowBlur.value, 10);
 
-	  // El margen mínimo debe incluir el grosor completo del trazo exterior
+	  // Minimum padding must accommodate the full outer stroke width
 	  let pad = Math.ceil(strokePx) + 4;
 	  if (showBorder && shapeShadowEnabled.checked) {
 		pad = Math.max(pad, strokePx + Math.abs(sOff.x) + sBlur * 2 + 4, strokePx + Math.abs(sOff.y) + sBlur * 2 + 4);
@@ -6339,7 +6391,7 @@ ${cellsMarkup}${gridMarkup}</svg>`;
 
     // Handle browser session restore (Ctrl+Shift+T) and bfcache navigation
     window.addEventListener('pageshow', (event) => {
-      // Fuerza el reseteo de los inputs si el navegador intentó restaurar la sesión anterior
+      // Force input reset if browser attempts to restore previous session state
       if (inputPrefix) inputPrefix.value = '';
       if (inputSuffix) inputSuffix.value = '';
       if (inputNum) inputNum.value = '0';
@@ -6411,21 +6463,57 @@ ${cellsMarkup}${gridMarkup}</svg>`;
 
     // ─── Circole GitHub Release & Auto-Updater ────────────────────────────────
     (function initCircoleUpdater() {
-      const CURRENT_VERSION = '5.2.6';
+      const CURRENT_VERSION = '5.2.5';
       const GITHUB_REPO = 'ivanalbrieu/circole';
       const ASSET_FILENAME = 'Circole.html';
 
       const updateModal = document.getElementById('updateModal');
+      const updateModalTitle = document.getElementById('updateModalTitle');
+      const updateTitleBadge = document.getElementById('updateTitleBadge');
       const btnCloseUpdate = document.getElementById('btnCloseUpdate');
       const btnDismissUpdate = document.getElementById('btnDismissUpdate');
       const btnActionUpdate = document.getElementById('btnActionUpdate');
       const btnActionUpdateText = document.getElementById('btnActionUpdateText');
       const updateVersionInfo = document.getElementById('updateVersionInfo');
       const updateInstructions = document.getElementById('updateInstructions');
+      const updateReleaseNotesHeader = document.getElementById('updateReleaseNotesHeader');
       const updateReleaseNotesContainer = document.getElementById('updateReleaseNotesContainer');
       const updateReleaseNotes = document.getElementById('updateReleaseNotes');
 
       const isLocal = window.location.protocol === 'file:';
+      let activeReleaseData = null;
+
+      function applyUpdateModalTranslations(lang) {
+        const t = (typeof translations !== 'undefined' && translations[lang]) ? translations[lang] : translations['en'];
+        if (!t) return;
+
+        if (updateModalTitle) updateModalTitle.textContent = t.updateModalTitle || 'Update Available';
+        if (updateTitleBadge) updateTitleBadge.textContent = t.updateNewVersion || 'A new version is available!';
+        if (updateReleaseNotesHeader) updateReleaseNotesHeader.textContent = t.updateReleaseNotesHeader || 'Release Notes';
+        if (btnDismissUpdate) btnDismissUpdate.textContent = t.updateLater || 'Later';
+
+        if (activeReleaseData) {
+          const latestTag = activeReleaseData.tag_name || '';
+          if (updateVersionInfo) {
+            updateVersionInfo.textContent = lang === 'es'
+              ? `¡Circole ${latestTag} está listo para instalar! (Actual: v${CURRENT_VERSION})`
+              : `Circole ${latestTag} is ready to install! (Current: v${CURRENT_VERSION})`;
+          }
+          if (isLocal) {
+            if (updateInstructions) updateInstructions.textContent = t.updateLocalDesc;
+            if (btnActionUpdateText && !btnActionUpdate.disabled) {
+              btnActionUpdateText.textContent = t.updateActionReplace;
+            }
+          } else {
+            if (updateInstructions) updateInstructions.textContent = t.updateWebDesc;
+            if (btnActionUpdateText && !btnActionUpdate.disabled) {
+              btnActionUpdateText.textContent = t.updateActionRefresh;
+            }
+          }
+        }
+      }
+
+      window.__CIRCOLE_UPDATE_I18N = applyUpdateModalTranslations;
 
       function closeUpdateModal() {
         if (updateModal) updateModal.classList.add('hidden');
@@ -6448,24 +6536,44 @@ ${cellsMarkup}${gridMarkup}</svg>`;
         return false;
       }
 
-      async function checkForUpdates() {
+      async function checkForUpdates(manual = false) {
+        const btnDesktop = document.getElementById('btnCheckUpdate');
+        const btnMobile = document.getElementById('btnMobileCheckUpdate');
+        const curT = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : translations['en'];
+
+        if (manual) {
+          if (btnDesktop) {
+            btnDesktop.classList.add('animate-spin');
+            btnDesktop.disabled = true;
+          }
+          if (btnMobile) {
+            btnMobile.classList.add('animate-spin');
+            btnMobile.disabled = true;
+          }
+        }
+
         try {
           const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
             headers: { 'Accept': 'application/vnd.github.v3+json' }
           });
-          if (!res.ok) return;
+          if (!res.ok) {
+            if (manual) alert(curT.updateUpToDate || 'Circole is up to date!');
+            return;
+          }
 
           const release = await res.json();
           const latestTag = release.tag_name || '';
 
           if (!compareSemver(latestTag, CURRENT_VERSION)) {
+            if (manual) {
+              alert(curT.updateUpToDate || 'Circole is up to date!');
+            }
             return; // Already up to date
           }
 
-          // Show version details
-          if (updateVersionInfo) {
-            updateVersionInfo.textContent = `Circole ${latestTag} is available! (Current: v${CURRENT_VERSION})`;
-          }
+          activeReleaseData = release;
+          const lang = typeof currentLang !== 'undefined' ? currentLang : 'en';
+          applyUpdateModalTranslations(lang);
 
           if (release.body && release.body.trim()) {
             if (updateReleaseNotes) updateReleaseNotes.textContent = release.body.trim();
@@ -6479,22 +6587,17 @@ ${cellsMarkup}${gridMarkup}</svg>`;
           const downloadUrl = asset ? asset.browser_download_url : `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${ASSET_FILENAME}`;
 
           if (isLocal) {
-            // Local file mode: Download or Overwrite current file
-            if (updateInstructions) {
-              updateInstructions.textContent = 'You are running Circole locally. Click below to download the latest release and replace your local file.';
-            }
-            if (btnActionUpdateText) btnActionUpdateText.textContent = 'Download & Replace';
-
             btnActionUpdate.onclick = async () => {
+              const activeT = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : translations['en'];
               btnActionUpdate.disabled = true;
-              if (btnActionUpdateText) btnActionUpdateText.textContent = 'Fetching release...';
+              if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateFetching || 'Fetching release...';
 
               try {
                 const fileRes = await fetch(downloadUrl);
                 if (!fileRes.ok) throw new Error('Download failed: ' + fileRes.statusText);
                 const newCode = await fileRes.text();
 
-                // Check for modern File System Access API (Chrome, Edge, Opera)
+                // Modern File System Access API (Chrome, Edge, Brave, Opera)
                 if ('showSaveFilePicker' in window) {
                   const handle = await window.showSaveFilePicker({
                     suggestedName: ASSET_FILENAME,
@@ -6507,15 +6610,15 @@ ${cellsMarkup}${gridMarkup}</svg>`;
                   await writable.write(newCode);
                   await writable.close();
 
-                  if (btnActionUpdateText) btnActionUpdateText.textContent = 'Updated!';
-                  alert(`Circole successfully updated to ${latestTag}! The file has been overwritten. Click OK to reload.`);
+                  if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateUpdated || 'Updated!';
+                  alert(activeT.updateAlertSuccess || `Circole successfully updated to ${latestTag}! The file has been overwritten. Click OK to reload.`);
                   window.location.reload();
                   return;
                 }
               } catch (err) {
                 if (err.name === 'AbortError') {
                   btnActionUpdate.disabled = false;
-                  if (btnActionUpdateText) btnActionUpdateText.textContent = 'Download & Replace';
+                  if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateActionReplace || 'Download & Replace';
                   return; // User cancelled picker
                 }
                 console.warn('Direct overwrite unavailable or failed:', err);
@@ -6529,21 +6632,15 @@ ${cellsMarkup}${gridMarkup}</svg>`;
               a.click();
               document.body.removeChild(a);
 
-              if (btnActionUpdateText) btnActionUpdateText.textContent = 'Downloaded!';
+              if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateDownloaded || 'Downloaded!';
               setTimeout(() => {
                 btnActionUpdate.disabled = false;
-                if (btnActionUpdateText) btnActionUpdateText.textContent = 'Download Again';
+                if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateActionReplace || 'Download & Replace';
               }, 3000);
             };
           } else {
             // GitHub Pages / Web mode: Refresh page to get latest deployed version
-            if (updateInstructions) {
-              updateInstructions.textContent = 'A new version of Circole has been deployed. Refresh your browser to load the latest release.';
-            }
-            if (btnActionUpdateText) btnActionUpdateText.textContent = 'Refresh to Update';
-
             btnActionUpdate.onclick = () => {
-              // Cache-busting reload
               const url = new URL(window.location.href);
               url.searchParams.set('v', latestTag.replace(/^v/, ''));
               window.location.href = url.toString();
@@ -6558,10 +6655,31 @@ ${cellsMarkup}${gridMarkup}</svg>`;
             }
           }
         } catch (err) {
-          // Silent catch: network blocked, offline, or rate limited
           console.debug('Update check skipped:', err);
+          if (manual) {
+            alert(curT.updateUpToDate || 'Circole is up to date!');
+          }
+        } finally {
+          if (manual) {
+            setTimeout(() => {
+              if (btnDesktop) {
+                btnDesktop.classList.remove('animate-spin');
+                btnDesktop.disabled = false;
+              }
+              if (btnMobile) {
+                btnMobile.classList.remove('animate-spin');
+                btnMobile.disabled = false;
+              }
+            }, 500);
+          }
         }
       }
+
+      // Attach manual update check triggers
+      const btnCheckDesktop = document.getElementById('btnCheckUpdate');
+      const btnCheckMobile = document.getElementById('btnMobileCheckUpdate');
+      if (btnCheckDesktop) btnCheckDesktop.addEventListener('click', () => checkForUpdates(true));
+      if (btnCheckMobile) btnCheckMobile.addEventListener('click', () => checkForUpdates(true));
 
       // Check on load (with slight delay so UI finishes initial render)
       if (document.readyState === 'loading') {
