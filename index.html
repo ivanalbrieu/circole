@@ -6469,7 +6469,7 @@ ${cellsMarkup}${gridMarkup}</svg>`;
     (function initCircoleUpdater() {
       const CURRENT_VERSION = '5.2.6';
       const GITHUB_REPO = 'ivanalbrieu/circole';
-      const ASSET_FILENAME = 'Circole.html';
+      const ASSET_FILENAME = (window.location.pathname.toLowerCase().endsWith('index.html') ? 'index.html' : 'Circole.html');
 
       const updateModal = document.getElementById('updateModal');
       const updateModalTitle = document.getElementById('updateModalTitle');
