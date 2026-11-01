@@ -718,7 +718,7 @@
 	  border: 1px solid #767676 !important;
 	  max-width: 540px !important;
 	  width: 90% !important;
-	  height: auto !important;
+	  height: 80vh !important;
 	  max-height: 80vh !important;
 	  background: #ffffff !important;
 	  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
@@ -831,9 +831,13 @@
       box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* Hide theme toggle buttons if not applicable in native or safe mode */
+    /* Hide theme toggle and update check buttons in Native UI / Safe Mode */
     html[data-circole-native-ui] #btnThemeToggle,
     html[data-circole-native-ui] #btnMobileTheme,
+    html[data-circole-native-ui] #btnCheckUpdate,
+    html[data-circole-native-ui] #btnMobileCheckUpdate,
+    html[data-circole-safe-mode] #btnCheckUpdate,
+    html[data-circole-safe-mode] #btnMobileCheckUpdate,
     html[data-circole-native-ui] .top-controls > div.w-px {
       display: none !important;
     }
@@ -6537,6 +6541,11 @@ ${cellsMarkup}${gridMarkup}</svg>`;
       }
 
       async function checkForUpdates(manual = false) {
+        // Do not run or trigger updater if safe mode or native UI is active
+        if (window.__CIRCOLE_ENV && (window.__CIRCOLE_ENV.safeMode || window.__CIRCOLE_ENV.nativeUI)) {
+          return;
+        }
+
         const btnDesktop = document.getElementById('btnCheckUpdate');
         const btnMobile = document.getElementById('btnMobileCheckUpdate');
         const curT = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : translations['en'];
