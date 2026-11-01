@@ -6589,11 +6589,12 @@ ${cellsMarkup}${gridMarkup}</svg>`;
             if (updateReleaseNotesContainer) updateReleaseNotesContainer.classList.remove('hidden');
           }
 
-          // Pick best download URL (either uploaded asset or raw file from main)
+          // Locate the attached HTML file in the latest GitHub Release
           const asset = Array.isArray(release.assets) && release.assets.find(a => 
             a.name && (a.name.toLowerCase() === ASSET_FILENAME.toLowerCase() || a.name.toLowerCase().endsWith('.html'))
           );
-          const downloadUrl = asset ? asset.browser_download_url : `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${ASSET_FILENAME}`;
+          const targetFilename = asset ? asset.name : ASSET_FILENAME;
+          const browserDownloadUrl = asset ? asset.browser_download_url : `https://github.com/${GITHUB_REPO}/releases/latest`;
 
           if (isLocal) {
             btnActionUpdate.onclick = async () => {
@@ -6602,19 +6603,24 @@ ${cellsMarkup}${gridMarkup}</svg>`;
               if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateFetching || 'Fetching release...';
 
               try {
-                const fileRes = await fetch(downloadUrl);
-                if (!fileRes.ok) throw new Error('Download failed: ' + fileRes.statusText);
-                const newCode = await fileRes.text();
-
-                // Modern File System Access API (Chrome, Edge, Brave, Opera)
-                if ('showSaveFilePicker' in window) {
+                // Use the modern File System Access API if available AND an asset is attached
+                if ('showSaveFilePicker' in window && asset && asset.url) {
+                  // Prompt user for the save location first (requires user gesture)
                   const handle = await window.showSaveFilePicker({
-                    suggestedName: ASSET_FILENAME,
+                    suggestedName: targetFilename,
                     types: [{
                       description: 'HTML Document',
                       accept: { 'text/html': ['.html', '.htm'] }
                     }]
                   });
+
+                  // Fetch the attached release asset via the CORS-enabled GitHub API endpoint
+                  const fileRes = await fetch(asset.url, {
+                    headers: { 'Accept': 'application/octet-stream' }
+                  });
+                  if (!fileRes.ok) throw new Error('Download failed: ' + fileRes.statusText);
+                  const newCode = await fileRes.text();
+
                   const writable = await handle.createWritable();
                   await writable.write(newCode);
                   await writable.close();
@@ -6630,13 +6636,13 @@ ${cellsMarkup}${gridMarkup}</svg>`;
                   if (btnActionUpdateText) btnActionUpdateText.textContent = activeT.updateActionReplace || 'Download & Replace';
                   return; // User cancelled picker
                 }
-                console.warn('Direct overwrite unavailable or failed:', err);
+                console.warn('Direct overwrite unavailable or failed, falling back to browser download:', err);
               }
 
-              // Fallback: standard file download
+              // Fallback: trigger direct browser download of the attached release asset
               const a = document.createElement('a');
-              a.href = downloadUrl;
-              a.download = ASSET_FILENAME;
+              a.href = browserDownloadUrl;
+              a.download = targetFilename;
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
