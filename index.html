@@ -8485,14 +8485,34 @@ ${res.markup}</svg>`;
 
       // Compare semantic version numbers (returns true if vNew > vCur)
       function compareSemver(vNew, vCur) {
-        const parse = (v) => v.replace(/^v/i, '').split(/[-+]/)[0].split('.').map(n => parseInt(n, 10) || 0);
+        const parse = (v) => {
+          const s = String(v || '').replace(/^v/i, '').trim();
+          const parts = s.split('-', 2);
+          const core = parts[0].split('.').map(n => parseInt(n, 10) || 0);
+          while (core.length < 3) core.push(0);
+          return { core, pre: parts.length > 1 ? parts[1] : null };
+        };
         const a = parse(vNew);
         const b = parse(vCur);
-        for (let i = 0; i < Math.max(a.length, b.length); i++) {
-          const numA = a[i] || 0;
-          const numB = b[i] || 0;
-          if (numA > numB) return true;
-          if (numA < numB) return false;
+        for (let i = 0; i < 3; i++) {
+          if (a.core[i] > b.core[i]) return true;
+          if (a.core[i] < b.core[i]) return false;
+        }
+        // Same core version: a full release is newer than a pre-release
+        if (b.pre !== null && a.pre === null) return true;
+        if (b.pre === null && a.pre !== null) return false;
+        if (b.pre === null && a.pre === null) return false;
+        // Both are pre-releases: compare pre-release identifiers
+        const pA = a.pre.split('.');
+        const pB = b.pre.split('.');
+        for (let i = 0; i < Math.max(pA.length, pB.length); i++) {
+          const idA = pA[i] || '';
+          const idB = pB[i] || '';
+          if (idA === idB) continue;
+          const isNumA = /^\d+$/.test(idA);
+          const isNumB = /^\d+$/.test(idB);
+          if (isNumA && isNumB) return parseInt(idA, 10) > parseInt(idB, 10);
+          return idA.localeCompare(idB) > 0;
         }
         return false;
       }
@@ -8519,23 +8539,47 @@ ${res.markup}</svg>`;
         }
 
         try {
-          const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-            headers: { 'Accept': 'application/vnd.github.v3+json' }
-          });
-          if (!res.ok) {
-            if (manual) alert(curT.updateUpToDate || 'Circole is up to date!');
-            return;
+          const isCurrentPre = CURRENT_VERSION.includes('-') || CURRENT_VERSION.includes('beta') || CURRENT_VERSION.includes('dev');
+          let release = null;
+
+          if (isCurrentPre) {
+            // Pre-release build: fetch recent releases to find the newest eligible pre-release or stable release
+            const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`, {
+              headers: { 'Accept': 'application/vnd.github.v3+json' }
+            });
+            if (res.ok) {
+              const list = await res.json();
+              if (Array.isArray(list)) {
+                // Find the first release in list newer than CURRENT_VERSION
+                for (const r of list) {
+                  if (r && r.tag_name && compareSemver(r.tag_name, CURRENT_VERSION)) {
+                    release = r;
+                    break;
+                  }
+                }
+              }
+            }
+          } else {
+            // Main / stable release: fetch ONLY published full releases (GitHub's /releases/latest excludes pre-releases)
+            const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+              headers: { 'Accept': 'application/vnd.github.v3+json' }
+            });
+            if (res.ok) {
+              const latestRel = await res.json();
+              if (latestRel && latestRel.tag_name && compareSemver(latestRel.tag_name, CURRENT_VERSION)) {
+                release = latestRel;
+              }
+            }
           }
 
-          const release = await res.json();
-          const latestTag = release.tag_name || '';
-
-          if (!compareSemver(latestTag, CURRENT_VERSION)) {
+          if (!release) {
             if (manual) {
               alert(curT.updateUpToDate || 'Circole is up to date!');
             }
             return; // Already up to date
           }
+
+          const latestTag = release.tag_name || '';
 
           activeReleaseData = release;
           const lang = typeof currentLang !== 'undefined' ? currentLang : 'en';
