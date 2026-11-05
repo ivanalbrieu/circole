@@ -283,7 +283,7 @@
 		display: none !important;
 	  }
 
-      /* Mobile: ocultar chip si el banner de advertencia ya está visible */
+      /* Mobile: hide chip if warning banner is already visible */
       html[data-circole-vector-broken]:not([data-circole-native-ui]) #mobileHeader .safe-mode-chip,
       html[data-circole-fonts-broken]:not([data-circole-native-ui]) #mobileHeader .safe-mode-chip {
         display: none !important;
@@ -747,7 +747,7 @@
       font-size: 0.75rem !important;
     }
 
-    /* Encabezado Fijo del Modal: Ícono y Título en línea horizontal limpia */
+    /* Fixed Modal Header: Icon and Title in a clean horizontal line */
     html[data-circole-native-ui] #helpModal > div > div:first-child {
       display: flex !important;
       justify-content: space-between !important;
@@ -861,7 +861,7 @@
        `.safe-mode-chip` / `.safe-mode-banner` are already gated by the
        `html[data-circole-safe-mode]` attribute on show/hide. */
 
-    /* 3. Etiquetas de Estado Tipográfico (Vector / Live Text) clásicas en Safe Mode */
+    /* 3. Typographic Status Badges (Vector / Live Text) classic in Safe Mode */
     html[data-circole-native-ui] #fontVectorStatus {
       font-size: 0.7rem !important;
       font-weight: bold !important;
@@ -871,7 +871,7 @@
       padding: 0.1rem 0.3rem !important;
     }
 
-    /* Si el estado es de advertencia (Live Text / No vector) */
+    /* Warning status styling (Live Text / No vector) */
     html[data-circole-native-ui] #fontVectorStatus.bg-amber-100,
     html[data-circole-native-ui] #fontVectorStatus[class*="amber"] {
       background: #fff3cd !important;
@@ -879,7 +879,7 @@
       border-color: #856404 !important;
     }
 
-    /* Si el estado es correcto (Vector) */
+    /* Success status styling (Vector) */
     html[data-circole-native-ui] #fontVectorStatus.bg-emerald-100,
     html[data-circole-native-ui] #fontVectorStatus[class*="emerald"] {
       background: #e2f0d9 !important;
@@ -2052,7 +2052,7 @@
         errFontLoad: "Could not load font file. Please provide a valid TTF, OTF, or WOFF file (WOFF2 is not supported).",
         errFontScanUnsupported: "Font scanning is only supported on Chromium-based desktop browsers (Chrome, Edge, Brave, Opera). It is not available on Firefox, Safari, or any mobile browser.",
         btnUnsupported: "Unsupported", btnScanning: "Scanning...", btnNoFonts: "No Fonts Found",
-        btnLoadedPrefix: "Loaded", fontsUploadedPrefix: "Fonts uploaded:",
+        btnLoadedPrefix: "Loaded", fontsUploadedPrefix: "Fonts uploaded:", uploadedTag: "(uploaded)",
         variants: {
           'Thin': 'Thin',
           'ExtraLight': 'ExtraLight',
@@ -2130,7 +2130,7 @@
         errFontLoad: "No se pudo cargar la fuente. Proporciona un archivo TTF, OTF o WOFF válido (WOFF2 no está soportado).",
         errFontScanUnsupported: "El escaneo de fuentes solo funciona en navegadores de escritorio basados en Chromium (Chrome, Edge, Brave, Opera). No está disponible en Firefox, Safari ni en ningún navegador móvil.",
         btnUnsupported: "No soportado", btnScanning: "Escaneando...", btnNoFonts: "Sin fuentes",
-        btnLoadedPrefix: "Cargadas", fontsUploadedPrefix: "Fuentes cargadas:",
+        btnLoadedPrefix: "Cargadas", fontsUploadedPrefix: "Fuentes cargadas:", uploadedTag: "(subido)",
         variants: {
           'Thin': 'Fina',
           'ExtraLight': 'Extra Ligera',
@@ -2251,7 +2251,7 @@
       const w = _detectWeight(font);
       const italic = _detectItalic(font);
 
-      // 1. nameID 17 (Typographic Subfamily) — solo si es congruente con el usWeightClass
+      // 1. nameID 17 (Typographic Subfamily) — only if congruent with usWeightClass
       const typo = _readName(font, 17, 'en');
       if (typo && typo.trim() && !RIBBI_LABELS.has(typo.trim().toLowerCase())) {
         const isMismatch = (w === 400 && /thin|light|bold|black/i.test(typo)) ||
@@ -2267,7 +2267,7 @@
         return legacy.trim();
       }
 
-      // 3. Formato canónico: peso 400 con cursiva se etiqueta 'Italic' (no 'Regular Italic')
+      // 3. Canonical format: weight 400 with italic is labeled 'Italic' (not 'Regular Italic')
       const base = WEIGHT_LABELS[w] || String(w);
       if (italic) {
         return (w === 400) ? 'Italic' : `${base} Italic`;
@@ -2360,6 +2360,98 @@
 		return false;
 	  } catch (_) { return false; }
 	}
+
+	function _parseFvarFromBuffer(buffer, parsedFont) {
+	  try {
+	    if (!buffer) return null;
+	    const dv = new DataView(buffer);
+	    if (dv.byteLength < 12) return null;
+	    const numTables = dv.getUint16(4);
+	    let fvarOff = 0, nameOff = 0;
+	    for (let i = 0; i < numTables; i++) {
+	      const o = 12 + 16 * i;
+	      if (o + 16 > dv.byteLength) break;
+	      const tag = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
+	      if (tag === 'fvar') fvarOff = dv.getUint32(o + 8);
+	      else if (tag === 'name') nameOff = dv.getUint32(o + 8);
+	    }
+	    if (!fvarOff || fvarOff + 16 > dv.byteLength) return null;
+
+	    const readNameString = (nameId) => {
+	      if (parsedFont) {
+	        try {
+	          const n = _readName(parsedFont, nameId, 'en');
+	          if (n) return n;
+	        } catch (_) {}
+	      }
+	      if (!nameOff || nameOff + 6 > dv.byteLength) return null;
+	      try {
+	        const count = dv.getUint16(nameOff + 2);
+	        const stringOffset = nameOff + dv.getUint16(nameOff + 4);
+	        for (let i = 0; i < count; i++) {
+	          const rec = nameOff + 6 + i * 12;
+	          if (rec + 12 > dv.byteLength) break;
+	          const nid = dv.getUint16(rec + 6);
+	          if (nid === nameId) {
+	            const len = dv.getUint16(rec + 8);
+	            const off = stringOffset + dv.getUint16(rec + 10);
+	            if (off + len <= dv.byteLength) {
+	              const bytes = new Uint8Array(buffer, off, len);
+	              if (len >= 2 && bytes[0] === 0) {
+	                let s = '';
+	                for (let k = 0; k < len; k += 2) s += String.fromCharCode((bytes[k] << 8) | bytes[k + 1]);
+	                if (s.trim()) return s.trim();
+	              } else {
+	                let s = '';
+	                for (let k = 0; k < len; k++) s += String.fromCharCode(bytes[k]);
+	                if (s.trim()) return s.trim();
+	              }
+	            }
+	          }
+	        }
+	      } catch (_) {}
+	      return null;
+	    };
+
+	    const axesArrayOffset = dv.getUint16(fvarOff + 4);
+	    const axisCount = dv.getUint16(fvarOff + 8);
+	    const axisSize = dv.getUint16(fvarOff + 10);
+	    const instanceCount = dv.getUint16(fvarOff + 12);
+	    const instanceSize = dv.getUint16(fvarOff + 14);
+
+	    const axes = [];
+	    for (let i = 0; i < axisCount; i++) {
+	      const o = fvarOff + axesArrayOffset + i * axisSize;
+	      if (o + 20 > dv.byteLength) break;
+	      const tag = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
+	      const min = dv.getInt32(o + 4) / 65536;
+	      const def = dv.getInt32(o + 8) / 65536;
+	      const max = dv.getInt32(o + 12) / 65536;
+	      const flags = dv.getUint16(o + 16);
+	      const axisNameId = dv.getUint16(o + 18);
+	      const name = readNameString(axisNameId) || tag;
+	      axes.push({ tag, name, minValue: min, defaultValue: def, maxValue: max, min, default: def, max, flags, axisNameId });
+	    }
+
+	    const instances = [];
+	    const instStart = fvarOff + axesArrayOffset + axisCount * axisSize;
+	    for (let i = 0; i < instanceCount; i++) {
+	      const o = instStart + i * instanceSize;
+	      if (o + 4 + axisCount * 4 > dv.byteLength) break;
+	      const subFamNameId = dv.getUint16(o);
+	      const name = readNameString(subFamNameId) || ('Instance ' + (i + 1));
+	      const coordinates = {};
+	      for (let a = 0; a < axisCount; a++) {
+	        const val = dv.getInt32(o + 4 + a * 4) / 65536;
+	        coordinates[axes[a].tag] = Math.round(val * 1000) / 1000;
+	      }
+	      instances.push({ name, subfamilyNameID: subFamNameId, coordinates, coords: coordinates });
+	    }
+
+	    return { axes, instances };
+	  } catch (_) { return null; }
+	}
+
 	
 	// Raw sfnt table-directory scan for 'COLR'. opentype.js 2.0.0 populates
 	// tables.colr only for COLRv0 — COLRv1 fonts (Nabla, most modern color
@@ -2941,7 +3033,16 @@
     // maxValue } (NOT min/max). Normalized here to { tag, name, min, max, default }.
     function _readFvarAxes(font) {
       try {
-        const raw = font && font.tables && font.tables.fvar && font.tables.fvar.axes;
+        let raw = font && font.tables && font.tables.fvar && font.tables.fvar.axes;
+        if ((!raw || !raw.length) && font && font._circoleBuf) {
+          const parsedFvar = _parseFvarFromBuffer(font._circoleBuf, font);
+          if (parsedFvar && parsedFvar.axes) {
+            if (!font.tables) font.tables = {};
+            if (!font.tables.fvar) font.tables.fvar = parsedFvar;
+            else { font.tables.fvar.axes = parsedFvar.axes; font.tables.fvar.instances = parsedFvar.instances; }
+            raw = parsedFvar.axes;
+          }
+        }
         if (!Array.isArray(raw)) return [];
         const out = [];
         for (const a of raw) {
@@ -3223,7 +3324,16 @@
     // identity, so the highlight can never desync from the actual state.
     function _readNamedInstances(font) {
       try {
-        const raw = font && font.tables && font.tables.fvar && font.tables.fvar.instances;
+        let raw = font && font.tables && font.tables.fvar && font.tables.fvar.instances;
+        if ((!raw || !raw.length) && font && font._circoleBuf) {
+          const parsedFvar = _parseFvarFromBuffer(font._circoleBuf, font);
+          if (parsedFvar && parsedFvar.instances) {
+            if (!font.tables) font.tables = {};
+            if (!font.tables.fvar) font.tables.fvar = parsedFvar;
+            else { font.tables.fvar.axes = parsedFvar.axes; font.tables.fvar.instances = parsedFvar.instances; }
+            raw = parsedFvar.instances;
+          }
+        }
         if (!Array.isArray(raw) || !raw.length) return [];
         const axes = (font.tables.fvar.axes || []).map(a => a.tag);
         const out = [];
@@ -3542,18 +3652,25 @@
     // Track which uploaded fonts are variable (styles locked).
     const _variableFonts = new Set();
     // Families the user added via Upload Font. Survives Reset; drives the status line.
+    function _uploadedOptionLabel(key) {
+      const t = translations[currentLang] || translations.en;
+      return String(key).replace(/\(uploaded\)$/i, t.uploadedTag || '(uploaded)');
+    }
+
     const _uploadedFamilies = new Set();
     function _uploadedFontsStatusText(t) {
       const fams = [..._uploadedFamilies].filter(f => _uploadedFontBuffers[f]);
       if (!fams.length) return '';
+      const plain = (f) => String(f).replace(/\s*\(uploaded\)$/i, '');
       if (fams.length === 1) {
         const f = fams[0];
         const n = Object.keys(_uploadedFontBuffers[f]).length;
-        if (_variableFonts.has(f)) return `${t.fontsUploadedPrefix} ${f} (variable)`;
-        if (n > 1) return `${t.fontsUploadedPrefix} ${f} (${n} variants)`;
-        return `${t.fontsUploadedPrefix} ${f}`;
+        const label = plain(f);
+        if (_variableFonts.has(f) && !/\(variable\)/i.test(label)) return `${t.fontsUploadedPrefix} ${label} (variable)`;
+        if (n > 1) return `${t.fontsUploadedPrefix} ${label} (${n} variants)`;
+        return `${t.fontsUploadedPrefix} ${label}`;
       }
-      return `${t.fontsUploadedPrefix} ${fams.join(', ')}`;
+      return `${t.fontsUploadedPrefix} ${fams.map(plain).join(', ')}`;
     }
 
 	
@@ -3574,7 +3691,7 @@
           _uploadedFontBuffers[family] = _buildGoogleVariantDescriptors(family);
         }
         let desc = _uploadedFontBuffers[family][variantKey];
-        // Si pidieron p.ej. 700_normal en una fuente que ahora es variable, redirigir al slot variable del mismo estilo
+        // If e.g. 700_normal was requested in a font that is now variable, redirect to the variable slot of the same style
         if (!desc && _variableFonts.has(family)) {
           const wantStyle = String(variantKey).endsWith('_italic') ? 'italic' : 'normal';
           desc = _uploadedFontBuffers[family][`400_${wantStyle}`] || _uploadedFontBuffers[family]['400_normal'];
@@ -3654,31 +3771,48 @@
       }
 
       // 3. Local buffer lookup — EXACT key only.
-      const map = _uploadedFontBuffers[family];
-      if (map && map[variantKey]) {
-        const desc = map[variantKey];
-        try {
-          if (desc._fontObj) {
-            _fontCache.set(key, desc._fontObj);
-            return desc._fontObj;
-          }
-          const font = opentype.parse(desc.buf);
-          font._circoleBuf = desc.buf;
-          desc._fontObj = font;
-          _fontCache.set(key, font);
-          _fontCache.set(`${family}::${desc.key}`, font);
+ // 3. Local buffer lookup with variable & alias fallback.
+ let map = _uploadedFontBuffers[family];
+ if (!map) {
+ const altFam = /\(variable\)$/i.test(family)
+ ? family.replace(/\s*\(variable\)\s*$/i, '').trim()
+ : `${family} (Variable)`;
+ map = _uploadedFontBuffers[altFam];
+ }
+ if (map) {
+ let desc = map[variantKey];
+ if (!desc && (_variableFonts.has(family) || Object.values(map).some(d => d && (d.isVariable || d.buf)))) {
+ const wantStyle = String(variantKey).endsWith('_italic') ? 'italic' : 'normal';
+ desc = map[`400_${wantStyle}`] || map['400_normal'] || Object.values(map).find(d => d && d.buf) || Object.values(map)[0];
+ }
+ if (desc && desc.buf) {
+ try {
+ if (desc._fontObj) {
+ _fontCache.set(key, desc._fontObj);
+ return desc._fontObj;
+ }
+ const font = opentype.parse(desc.buf);
+ font._circoleBuf = desc.buf;
+ if (_hasFvarTable(desc.buf) && (!font.tables || !font.tables.fvar)) {
+   const parsedFvar = _parseFvarFromBuffer(desc.buf, font);
+   if (parsedFvar) {
+     if (!font.tables) font.tables = {};
+     font.tables.fvar = parsedFvar;
+   }
+ }
+ desc._fontObj = font;
+ _fontCache.set(key, font);
+ _fontCache.set(`${family}::${desc.key}`, font);
 
-          // Trigger UI update once the font is parsed, so the user doesn't 
-          // have to click the Style dropdown to see the change.
-          if (getCleanFontFamily(document.documentElement.style.getPropertyValue('--active-font')) === family) {
-            requestAnimationFrame(() => render());
-          }
-          return font;
-        } catch (_) {}
-      }
-
-      return null;
-    }
+ // Trigger UI update once the font is parsed, so the user doesn't 
+ // have to click the Style dropdown to see the change.
+ if (getCleanFontFamily(document.documentElement.style.getPropertyValue('--active-font')) === family) {
+ requestAnimationFrame(() => render());
+ }
+ return font;
+ } catch (_) {}
+ }
+ }    }
 
 	// Populates _uploadedFontBuffers[family] from a queryLocalFonts() scan.
     // One descriptor per face; grouped by the font's own nameID 16/1.
@@ -3773,6 +3907,14 @@
                 continue;
               }
               if (!parsed) continue;
+              parsed._circoleBuf = buf;
+              if (rawHasFvar && (!parsed.tables || !parsed.tables.fvar)) {
+                const parsedFvar = _parseFvarFromBuffer(buf, parsed);
+                if (parsedFvar) {
+                  if (!parsed.tables) parsed.tables = {};
+                  parsed.tables.fvar = parsedFvar;
+                }
+              }
 
               const isVar = rawHasFvar || !!(parsed.tables && parsed.tables.fvar);
               const desc = _classifyVariant(parsed);
@@ -3889,10 +4031,21 @@
               it.parsed._circoleBuf = it.buf;
               it.desc._fontObj = it.parsed;
               _fontCache.set(cacheKey, it.parsed);
+              // Also cache under base name and (Variable) aliases so lookups never fail
+              const baseG = gName.replace(/\s*\(variable\)\s*$/i, '').trim();
+              _fontCache.set(`${baseG}::${it.desc.key}`, it.parsed);
+              _fontCache.set(`${baseG} (Variable)::${it.desc.key}`, it.parsed);
             }
 
             if (Object.keys(vMap).length) {
               _uploadedFontBuffers[gName] = vMap;
+              const baseG = gName.replace(/\s*\(variable\)\s*$/i, '').trim();
+              if (!_uploadedFontBuffers[baseG]) _uploadedFontBuffers[baseG] = vMap;
+              if (!_uploadedFontBuffers[`${baseG} (Variable)`]) _uploadedFontBuffers[`${baseG} (Variable)`] = vMap;
+              if (gHasVar) {
+                _variableFonts.add(baseG);
+                _variableFonts.add(`${baseG} (Variable)`);
+              }
             }
 
             if (g.name.toLowerCase() !== want) {
@@ -3904,20 +4057,32 @@
             for (const opt of customFontsGroup.children) {
               if (getCleanFontFamily(opt.value).toLowerCase() === want) {
                 opt.value = `"${mine.name}", sans-serif`;
-                opt.textContent = mine.name;
-                break;
-              }
-            }
-          }
+ opt.textContent = mine.name;
+ break;
+ }
+ }
+ }
 
-          if (mine.name.toLowerCase() !== want) {
-            _uploadedFontBuffers[family] = _uploadedFontBuffers[mine.name];
-          }
+ if (mine.name.toLowerCase() !== want) {
+ _uploadedFontBuffers[family] = _uploadedFontBuffers[mine.name];
+ }
 
-          resolvedFamily = mine.name;
-          return resolvedFamily;
-        } catch (err) {
-          console.warn('[Circole] _ensureLocalFontBuffer error:', err);
+ // Ensure alias resolution for uploadedFontBuffers and variableFonts
+ const mineBase = mine.name.replace(/\s*\(variable\)\s*$/i, '').trim();
+ if (_uploadedFontBuffers[mine.name]) {
+ _uploadedFontBuffers[mineBase] = _uploadedFontBuffers[mine.name];
+ _uploadedFontBuffers[`${mineBase} (Variable)`] = _uploadedFontBuffers[mine.name];
+ }
+ if (mine.items.some(it => it.isVar)) {
+ _variableFonts.add(mine.name);
+ _variableFonts.add(mineBase);
+ _variableFonts.add(`${mineBase} (Variable)`);
+  _variableFonts.add(family);
+ }
+
+ resolvedFamily = mine.name;
+ return resolvedFamily;
+ } catch (err) {          console.warn('[Circole] _ensureLocalFontBuffer error:', err);
           return family;
         }
       })();
@@ -4310,7 +4475,7 @@ function VarTT(buffer) {
     const featOff = (i) => featListOff + u16(featListOff + 2 + i * 6 + 4);
     const lookupsOf = (fo) => { const n = u16(fo + 2), r = []; for (let k = 0; k < n; k++) r.push(u16(fo + 4 + k * 2)); return r; };
 
-    // Unir features del DefaultLangSys de DFLT y latn para no perder rvrn/rclt registrados en uno solo
+    // Merge DefaultLangSys features from DFLT and latn so rvrn/rclt registered in only one are not lost
     let activeIdx = null;
     try {
       const sl = g + u16(g + 4), scn = u16(sl);
@@ -4337,7 +4502,7 @@ function VarTT(buffer) {
     const ACTIVE_FEATURES = new Set(['rvrn', 'rlig', 'rclt', 'calt', 'liga', 'clig', 'ccmp', 'locl']);
     for (let i = 0; i < fc; i++) {
       const tg = tagAt(i);
-      // rvrn siempre se habilita aunque el script no lo liste explícitamente en DefaultLangSys
+      // rvrn is always enabled even if the script does not explicitly list it in DefaultLangSys
       if (ACTIVE_FEATURES.has(tg) && (tg === 'rvrn' || !activeIdx || activeIdx.has(i))) {
         _rvrn.baseFeatureLookups.set(i, lookupsOf(featOff(i)));
         _rvrn.featureTag.set(i, tg);
@@ -4895,7 +5060,15 @@ function VarTT(buffer) {
 	
 	function _resolveVariationCoords(fontObj, userCoords) {
 	  const out = {};
-	  if (!fontObj || !fontObj.tables || !fontObj.tables.fvar) return out;
+	  if (!fontObj) return out;
+	  if ((!fontObj.tables || !fontObj.tables.fvar) && fontObj._circoleBuf) {
+	    const parsedFvar = _parseFvarFromBuffer(fontObj._circoleBuf, fontObj);
+	    if (parsedFvar && parsedFvar.axes) {
+	      if (!fontObj.tables) fontObj.tables = {};
+	      fontObj.tables.fvar = parsedFvar;
+	    }
+	  }
+	  if (!fontObj.tables || !fontObj.tables.fvar) return out;
 	  const lcUser = {};
 	  if (userCoords) {
 		for (const [k, v] of Object.entries(userCoords)) {
@@ -5262,7 +5435,7 @@ function VarTT(buffer) {
 
     previewViewport.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
-        // Bloquear comportamiento nativo de zoom de página en el navegador
+        // Prevent browser's native page-zoom gesture
         e.preventDefault();
         pinchInitialDistance = getTouchDistance(e.touches[0], e.touches[1]);
         pinchInitialZoom = currentZoom;
@@ -5415,7 +5588,7 @@ function VarTT(buffer) {
 	  document.querySelectorAll('.safe-banner-desc').forEach(el => el.textContent = desc);
 	  document.querySelectorAll('.lblSafeModeText').forEach(el => el.textContent = t.safeModeChipText);
 
-	  // Chip tooltip refleja el estado real (D.12)
+	  // Chip tooltip reflects actual state (D.12)
 	  const chipTitle = isOffline ? 'Offline mode'
 	                  : (isVectorBroken && isFontsBroken) ? 'Offline: vector and font support unavailable'
 	                  : isVectorBroken ? 'Vector export unavailable — using live text'
@@ -5444,6 +5617,9 @@ function VarTT(buffer) {
       setText('txtTabTypography', t.tabTypography);
       setText('txtTabShadow', t.tabShadow);
       setText('lblLang', t.langText);
+      for (const opt of fontSelect.options) {
+        if (opt.dataset.uploadedKey) opt.textContent = _uploadedOptionLabel(opt.dataset.uploadedKey);
+      }
 
       // 1. Number & Label
       setText('lblNumber', t.numberLabel);
@@ -5700,10 +5876,10 @@ function VarTT(buffer) {
       textStrokeWidthVal.textContent = textStrokeWidth;
       render();
     });
-    // Sliders y números (escuchan input)
+    // Sliders and numbers (listen to input)
     [sliderWidth, sliderHeight, sliderRoundness, sliderSize, bgOpacity, textOpacity, borderOpacity].forEach(el => el.addEventListener('input', render));
 
-    // Inputs de color (Bug B3: escuchan input para preview y change para commit inmediato en historial)
+    // Color pickers (Bug B3: listen to input for live preview and change for immediate history commit)
     const colorPickers = [
       bgColor1, bgColor2, textColor1, textColor2, borderColor1, borderColor2,
       shapeShadowColor1, shapeShadowColor2, textShadowColor1, textShadowColor2,
@@ -5881,7 +6057,17 @@ function VarTT(buffer) {
         try {
           if (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.hasOpentype) {
             parsedForMeta = opentype.parse(buf);
-            isVariable = !!(parsedForMeta && parsedForMeta.tables && parsedForMeta.tables.fvar);
+            if (parsedForMeta) {
+              parsedForMeta._circoleBuf = buf;
+              if (_hasFvarTable(buf) && (!parsedForMeta.tables || !parsedForMeta.tables.fvar)) {
+                const parsedFvar = _parseFvarFromBuffer(buf, parsedForMeta);
+                if (parsedFvar) {
+                  if (!parsedForMeta.tables) parsedForMeta.tables = {};
+                  parsedForMeta.tables.fvar = parsedFvar;
+                }
+              }
+            }
+            isVariable = _hasFvarTable(buf) || !!(parsedForMeta && parsedForMeta.tables && parsedForMeta.tables.fvar);
           }
         } catch (_) {
           parsedForMeta = null;
@@ -5899,9 +6085,8 @@ function VarTT(buffer) {
 
         if (isVariable) {
           if (!/\(variable\)$/i.test(family)) family = `${family} (Variable)`;
-        } else if (GOOGLE_FONT_VARIANTS[family]) {
-          family = `${family} (uploaded)`;
         }
+        family = `${family} (uploaded)`;
 
         const cssFamily = String(family).replace(/['"]/g, '');
         if (!_uploadedFontBuffers[family]) _uploadedFontBuffers[family] = {};
@@ -5985,14 +6170,15 @@ function VarTT(buffer) {
         for (const opt of fontSelect.options) {
           if (getCleanFontFamily(opt.value) === cssFam) { existingOpt = opt; break; }
         }
-        const isVar = _variableFonts.has(fam);
-        const wantLabel = fam + (isVar && !/\(variable\)$/i.test(fam) ? ' (Variable)' : '');
+        const wantLabel = _uploadedOptionLabel(fam);
         if (!existingOpt) {
           const opt = document.createElement('option');
           opt.value = `'${cssFam}', sans-serif`;
           opt.textContent = wantLabel;
+          opt.dataset.uploadedKey = fam;
           customFontsGroup.appendChild(opt);
         } else {
+          existingOpt.dataset.uploadedKey = fam;
           if (existingOpt.textContent !== wantLabel) existingOpt.textContent = wantLabel;
         }
       }
@@ -6042,6 +6228,16 @@ function VarTT(buffer) {
 		return;
 	  }
 
+	  const _prevFont = fontSelect.value;
+	  const _prevVariant = selectedVariant;
+	  const _wasVariable = _variableFonts.has(getCleanFontFamily(_prevFont));
+	  if (_wasVariable) {
+		for (const id of ['variableAxesGroup', 'customAxesGroup', 'namedInstancesGroup']) {
+		  document.getElementById(id)?.classList.add('hidden');
+		}
+		document.getElementById('variantGroup')?.classList.remove('hidden');
+	  }
+
 	  // Disable selectors and scan button during the scan
 	  btnLoadFonts.disabled = true;
 	  fontSelect.disabled = true;
@@ -6069,7 +6265,9 @@ function VarTT(buffer) {
 		  return;
 		}
 
-		customFontsGroup.innerHTML = '';
+		for (const old of Array.from(customFontsGroup.children)) {
+		  if (!old.dataset.uploadedKey) old.remove();
+		}
 		names.forEach(name => {
 		  const opt = document.createElement('option');
 		  opt.value = `"${name}", sans-serif`;
@@ -6163,10 +6361,30 @@ function VarTT(buffer) {
 	  } catch (err) {
 		btnLoadFonts.textContent = t.loadFonts;
 	  } finally {
+		const _keepFam = getCleanFontFamily(_prevFont);
+		const _keepOpt = [...fontSelect.options].find(o => o.value === _prevFont) ||
+		  [...fontSelect.options].find(o => {
+			const f = getCleanFontFamily(o.value).toLowerCase();
+			return f === _keepFam.toLowerCase() || f === `${_keepFam} (variable)`.toLowerCase();
+		  });
+		if (_keepOpt) {
+		  fontSelect.value = _keepOpt.value;
+		  const fam = getCleanFontFamily(_keepOpt.value);
+		  document.documentElement.style.setProperty('--active-font', _keepOpt.value);
+		  const map = _uploadedFontBuffers[fam];
+		  selectedVariant = map && map[_prevVariant] ? _prevVariant : (map ? _defaultVariantKey(fam) : '400_normal');
+		  if (_variableFonts.has(fam)) await renderVariableAxes(fam);
+		  refreshVariantSelect();
+		  updateVectorIndicator(fam);
+		  render();
+		} else if (_wasVariable) {
+		  refreshVariantSelect();
+		}
 		// Re-enable selectors and scan button once complete or on error
 		btnLoadFonts.disabled = false;
 		fontSelect.disabled = false;
 		if (variantSelectEl) variantSelectEl.disabled = false;
+		renderVariableAxes(getCleanFontFamily(fontSelect.value));
 	  }
 	});
 
@@ -6826,7 +7044,7 @@ function VarTT(buffer) {
       }
       sizeVal.textContent = uniformFontSize;
 
-      // Control de visibilidad de controles según estado del marco y forma
+      // Control visibility of controls based on frame and shape status
       const shapeTypeSec = document.getElementById('shapeTypeSection');
       if (shapeTypeSec) {
         shapeTypeSec.style.display = showBorder ? 'block' : 'none';
@@ -6997,17 +7215,33 @@ function VarTT(buffer) {
         const gradH = uniformFontSize * 1.2;
 
         // Render preview via VarTT vector path when variable font is loaded (ensures WONK & GSUB match export)
-        let glyphData = null;
-        let _prevVarCoords = null;
-        const fontObj = _fontCache.get(`${activeFont}::${selectedVariant}`);
-        const activeDesc = _uploadedFontBuffers[activeFont] && _uploadedFontBuffers[activeFont][selectedVariant];
-        if (fontObj && fontObj.tables && fontObj.tables.fvar) {
-          const rawCoords = (activeDesc && activeDesc._synthVarCoords) ? activeDesc._synthVarCoords : variantCoords;
-          const varCoords = _resolveVariationCoords(fontObj, rawCoords);
-          glyphData = _textToSvgPath(fontObj, cellText, uniformFontSize, scx, scy, weight, style, varCoords);
-          _prevVarCoords = varCoords;
-        }
-
+ let glyphData = null;
+ let _prevVarCoords = null;
+ let fontObj = _fontCache.get(`${activeFont}::${selectedVariant}`);
+ let activeDesc = _uploadedFontBuffers[activeFont] && _uploadedFontBuffers[activeFont][selectedVariant];
+ if (!fontObj && _uploadedFontBuffers[activeFont]) {
+ const _fMap = _uploadedFontBuffers[activeFont];
+ activeDesc = _fMap[selectedVariant] || Object.values(_fMap).find(d => d && d._fontObj) || Object.values(_fMap)[0];
+ if (activeDesc && activeDesc._fontObj) fontObj = activeDesc._fontObj;
+ }
+ if (!fontObj) {
+ const _altFam = /\(variable\)$/i.test(activeFont)
+ ? activeFont.replace(/\s*\(variable\)\s*$/i, '').trim()
+ : `${activeFont} (Variable)`;
+ if (_fontCache.has(`${_altFam}::${selectedVariant}`)) {
+ fontObj = _fontCache.get(`${_altFam}::${selectedVariant}`);
+ } else if (_uploadedFontBuffers[_altFam]) {
+ const _fMap = _uploadedFontBuffers[_altFam];
+ activeDesc = _fMap[selectedVariant] || Object.values(_fMap).find(d => d && d._fontObj) || Object.values(_fMap)[0];
+ if (activeDesc && activeDesc._fontObj) fontObj = activeDesc._fontObj;
+ }
+ }
+ if (fontObj && fontObj.tables && fontObj.tables.fvar) {
+ const rawCoords = (activeDesc && activeDesc._synthVarCoords) ? activeDesc._synthVarCoords : variantCoords;
+ const varCoords = _resolveVariationCoords(fontObj, rawCoords);
+ glyphData = _textToSvgPath(fontObj, cellText, uniformFontSize, scx, scy, weight, style, varCoords);
+ _prevVarCoords = varCoords;
+ }
         const isNativeUI = document.documentElement.hasAttribute('data-circole-native-ui');
         const dyAttr = isNativeUI ? ' dy="-0.06em"' : ' dy="0"';
 
@@ -7071,13 +7305,14 @@ function VarTT(buffer) {
         // fall through to the monochrome path without this check. FontFace
         // rendering uses the raw buffer, not opentype.js, so the browser
         // renders COLR correctly as long as we route through <text>.
-        const _fontHasColr = (fontObj && fontObj.tables && fontObj.tables.colr) ||
-          (fontObj && fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false);
-        let fillElementHtml;
-        let _colorVecPrev = null;
-        if (_fontHasColr && _prevVarCoords) {
-          try { _colorVecPrev = _textToColorLayers(fontObj, cellText, uniformFontSize, scx, scy, _prevVarCoords, textColor1.value); } catch (_) { _colorVecPrev = null; }
-        }
+ const _fontHasColr = (fontObj && fontObj.tables && fontObj.tables.colr) ||
+ (fontObj && fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false);
+ let fillElementHtml;
+ let _colorVecPrev = null;
+ if (_fontHasColr) {
+ const _effCoords = _prevVarCoords || (fontObj && fontObj.tables && fontObj.tables.fvar ? _resolveVariationCoords(fontObj, variantCoords) : {});
+ try { _colorVecPrev = _textToColorLayers(fontObj, cellText, uniformFontSize, scx, scy, _effCoords, textColor1.value); } catch (_) { _colorVecPrev = null; }
+ }
         if (_colorVecPrev) {
           svgDefs += _colorVecPrev.defs;
           fillElementHtml = _colorVecPrev.markup(Number(fillOpac));
@@ -7235,7 +7470,7 @@ function VarTT(buffer) {
 	function _getEmbeddedUploadedFontsCSS(cleanFont) {
       const map = _uploadedFontBuffers[cleanFont];
       if (!map) return '';
-      // Buscar el buffer activo de la variante o cualquier buffer disponible de la familia
+      // Look up active variant buffer or any available family buffer
       let desc = map[selectedVariant];
       if (!desc || !desc.buf) {
         for (const k of Object.keys(map)) {
@@ -7261,7 +7496,7 @@ function VarTT(buffer) {
       const _vs = _variantKeyToCssWeightStyle(selectedVariant);
       const weightDecl = isVar ? '1 1000' : String(_vs.weight);
 
-      // Desactivar síntesis obligatoria para que el renderizador no aplique falso cursiva
+      // Disable font synthesis so renderer doesn't apply faux italic/bold
       return `    <style>
       @font-face {
         font-family: '${cleanFont}';
@@ -7277,7 +7512,7 @@ function VarTT(buffer) {
     }
 
     async function buildSvgForExport() {
-      // Limpiar caché de rasterizados para este nuevo archivo SVG
+      // Clear rasterized cache for this new SVG export
       buildSvgCellMarkup._cachedShapePng = null;
       buildSvgCellMarkup._cachedShapeKey = null;
       buildSvgCellMarkup._cachedShapeDefId = null;
@@ -7640,8 +7875,8 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
 	  let varTransform = '';
       if (isVar && typeof variantCoords['slnt'] === 'number' && variantCoords['slnt'] !== 0) {
         const skewAngle = -variantCoords['slnt'];
-        // Si el visor SVG ignora font-variation-settings, la matriz skewX asegura la misma inclinación
-        // pero la regla estándar font-variation-settings la mantiene viva
+        // If the SVG viewer ignores font-variation-settings, skewX matrix ensures equivalent slant
+        // while standard font-variation-settings keeps it dynamic
       }
 
       // --- SHAPE SHADOW ---
@@ -7752,7 +7987,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
             const imgY = (cy + tOff.y - png.height / 2).toFixed(2);
             markup += `  <image href="${png.dataUrl}" xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
           } else {
-            // === RUTA DE BETA4 ORIGINAL (Síncrona, ligera y 100% legible en Illustrator) ===
+            // Synchronous, lightweight and 100% readable in Illustrator
             const png = _renderBlurredShadowPNG({
               kind: 'text',
               cw: gradW, ch: gradH, r: 0, isRound: false,
@@ -7841,17 +8076,19 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       const fgOpacAttr = (tFillOpacity !== '1.00' && tFillOpacity !== 1) ? ` fill-opacity="${tFillOpacity}"` : '';
 
       // COLR detection — see render() for why we scan the raw buffer as
-      // well as fontObj.tables.colr. Belt-and-braces: prefer opentype.js,
-      // fall back to raw scan.
-      const _fontHasColr = hasFontObj && (
-        !!(fontObj.tables && fontObj.tables.colr) ||
-        (fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false)
-      );
-      let _colorVec = null;
-      if (_fontHasColr && varCoords) {
-        try { _colorVec = _textToColorLayers(fontObj, text, fontSize, cx, cy, varCoords, textColor1.value); } catch (_) { _colorVec = null; }
-      }
-      if (_colorVec) {
+ // COLR detection — see render() for why we scan the raw buffer as
+ // well as fontObj.tables.colr. Belt-and-braces: prefer opentype.js,
+ // fall back to raw scan.
+ const _fontHasColr = hasFontObj && (
+ !!(fontObj.tables && fontObj.tables.colr) ||
+ (fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false)
+ );
+ let _colorVec = null;
+ if (_fontHasColr) {
+ const _effCoords = varCoords || (fontObj && fontObj.tables && fontObj.tables.fvar ? _resolveVariationCoords(fontObj, variantCoords) : {});
+ try { _colorVec = _textToColorLayers(fontObj, text, fontSize, cx, cy, _effCoords, textColor1.value); } catch (_) { _colorVec = null; }
+ }
+        if (_colorVec) {
         defs += _colorVec.defs;
         markup += strokeMarkup;
         markup += '  ' + _colorVec.markup(parseFloat(tFillOpacity) || 1) + '\n';
@@ -7914,7 +8151,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
         pad = Math.max(pad, Math.abs(tOff.x) + tBlur * 2 + 4, Math.abs(tOff.y) + tBlur * 2 + 4);
       }
 
-      // Si no tiene marco, añade margen para que las letras desbordantes no queden recortadas
+      // If no border, add padding so overflowing glyphs are not clipped
       if (!showBorder) {
         const mCanvas = document.createElement('canvas');
         const mCtx = mCanvas.getContext('2d');
@@ -8116,7 +8353,7 @@ ${res.markup}</svg>`;
 
     // Handle browser session restore (Ctrl+Shift+T) and bfcache navigation
     window.addEventListener('pageshow', (event) => {
-      // Fuerza el reseteo de los inputs si el navegador intentó restaurar la sesión anterior
+      // Force input reset if browser attempted to restore previous session state
       if (inputPrefix) inputPrefix.value = '';
       if (inputSuffix) inputSuffix.value = '';
       if (inputNum) inputNum.value = '0';
@@ -8166,7 +8403,7 @@ ${res.markup}</svg>`;
         window.__CIRCOLE_ENV.nativeUI = !hasTailwind;
         window.__CIRCOLE_ENV.vectorBroken = !hasOpentype;
         window.__CIRCOLE_ENV.safeMode = !hasTailwind || !hasOpentype;
-        // Reset del availability map (D.10)
+        // Reset availability map (D.10)
         window.__CIRCOLE_ENV.hasGoogleFontsCSS = null;
         window.__CIRCOLE_ENV.googleFontsAvailable = {};
       }
