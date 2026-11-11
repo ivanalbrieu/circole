@@ -1931,7 +1931,7 @@
       const env = window.__CIRCOLE_ENV;
       if (!env) return;
 
-      const FAMILIES = ['Arimo','Oswald','Montserrat','Roboto','Gelasio','Fira Sans','Courier Prime','Anton'];
+      const FAMILIES = CIRCOLE_GOOGLE_FAMILIES;
 
       if (!env.isOffline && document.fonts && typeof document.fonts.load === 'function') {
         await Promise.all(
@@ -2295,8 +2295,6 @@
       return 'UploadedFont';
     }
 	
-	const _uploadLegacyOf = new WeakMap();
-    const _USE_NAME_TABLE_STYLE_LABELS = false;
 
     const _WIDTH_LABELS = { 1: 'Ultra Condensed', 2: 'Extra Condensed', 3: 'Condensed', 4: 'Semi Condensed',
                             6: 'Semi Expanded', 7: 'Expanded', 8: 'Extra Expanded', 9: 'Ultra Expanded' };
@@ -3406,7 +3404,7 @@
     }
 
     function _applyInstance(inst) {
-      // Replace variantCoords wholesale custom a preset is a complete state, not a
+      // Replace variantCoords wholesale: a preset is a complete state, not a
       // delta on top of the current one.
       variantCoords = { ...inst.coords };
       renderVariableAxes(getCleanFontFamily(fontSelect.value));
@@ -3680,6 +3678,34 @@
     // "700_normal". Buffers are cached in the descriptor map; parsed fonts are
     // cached in _fontCache under "family::variantKey".
 
+    function _resolveFamilyAlias(family) {
+      if (_uploadedFontBuffers[family]) return _uploadedFontBuffers[family];
+      const altFam = /\(variable\)$/i.test(family)
+        ? family.replace(/\s*\(variable\)\s*$/i, '').trim()
+        : `${family} (Variable)`;
+      return _uploadedFontBuffers[altFam] || null;
+    }
+
+    function _redirectToVariableSlot(map, family, variantKey) {
+      if (!map) return null;
+      let desc = map[variantKey];
+      if (!desc && (_variableFonts.has(family) || Object.values(map).some(d => d && (d.isVariable || d.buf)))) {
+        const wantStyle = String(variantKey).endsWith('_italic') ? 'italic' : 'normal';
+        desc = map[`400_${wantStyle}`] || map['400_normal'] || Object.values(map).find(d => d && d.buf) || Object.values(map)[0];
+      }
+      return desc || null;
+    }
+
+    function _recoverFvar(buf, font) {
+      if (_hasFvarTable(buf) && (!font.tables || !font.tables.fvar)) {
+        const parsedFvar = _parseFvarFromBuffer(buf, font);
+        if (parsedFvar) {
+          if (!font.tables) font.tables = {};
+          font.tables.fvar = parsedFvar;
+        }
+      }
+    }
+
     async function _getFontForExport(family, variantKey) {
       const key = `${family}::${variantKey}`;
       if (_fontCache.has(key)) return _fontCache.get(key);
@@ -3770,49 +3796,31 @@
         await _ensureLocalFontBuffer(family);
       }
 
-      // 3. Local buffer lookup — EXACT key only.
- // 3. Local buffer lookup with variable & alias fallback.
- let map = _uploadedFontBuffers[family];
- if (!map) {
- const altFam = /\(variable\)$/i.test(family)
- ? family.replace(/\s*\(variable\)\s*$/i, '').trim()
- : `${family} (Variable)`;
- map = _uploadedFontBuffers[altFam];
- }
- if (map) {
- let desc = map[variantKey];
- if (!desc && (_variableFonts.has(family) || Object.values(map).some(d => d && (d.isVariable || d.buf)))) {
- const wantStyle = String(variantKey).endsWith('_italic') ? 'italic' : 'normal';
- desc = map[`400_${wantStyle}`] || map['400_normal'] || Object.values(map).find(d => d && d.buf) || Object.values(map)[0];
- }
- if (desc && desc.buf) {
- try {
- if (desc._fontObj) {
- _fontCache.set(key, desc._fontObj);
- return desc._fontObj;
- }
- const font = opentype.parse(desc.buf);
- font._circoleBuf = desc.buf;
- if (_hasFvarTable(desc.buf) && (!font.tables || !font.tables.fvar)) {
-   const parsedFvar = _parseFvarFromBuffer(desc.buf, font);
-   if (parsedFvar) {
-     if (!font.tables) font.tables = {};
-     font.tables.fvar = parsedFvar;
-   }
- }
- desc._fontObj = font;
- _fontCache.set(key, font);
- _fontCache.set(`${family}::${desc.key}`, font);
+      // 3. Local buffer lookup with variable & alias fallback.
+      const map = _resolveFamilyAlias(family);
+      if (map) {
+        const desc = _redirectToVariableSlot(map, family, variantKey);
+        if (desc && desc.buf) {
+          try {
+            if (desc._fontObj) {
+              _fontCache.set(key, desc._fontObj);
+              return desc._fontObj;
+            }
+            const font = opentype.parse(desc.buf);
+            font._circoleBuf = desc.buf;
+            _recoverFvar(desc.buf, font);
+            desc._fontObj = font;
+            _fontCache.set(key, font);
+            _fontCache.set(`${family}::${desc.key}`, font);
 
- // Trigger UI update once the font is parsed, so the user doesn't 
- // have to click the Style dropdown to see the change.
- if (getCleanFontFamily(document.documentElement.style.getPropertyValue('--active-font')) === family) {
- requestAnimationFrame(() => render());
- }
- return font;
- } catch (_) {}
- }
- }    }
+            if (getCleanFontFamily(document.documentElement.style.getPropertyValue('--active-font')) === family) {
+              requestAnimationFrame(() => render());
+            }
+            return font;
+          } catch (_) {}
+        }
+      }
+    }
 
 	// Populates _uploadedFontBuffers[family] from a queryLocalFonts() scan.
     // One descriptor per face; grouped by the font's own nameID 16/1.
@@ -4614,16 +4622,6 @@ function VarTT(buffer) {
   function substituteRvrn(gids, norm) {
     if (_rvrn === undefined) {
       try { parseRvrn(); } catch (e) { console.error('[VarTT] parseRvrn error:', e); _rvrn = { records: [], baseFeatureLookups: new Map(), featureTag: new Map(), lookupOffsets: [] }; }
-      console.log('[VarTT A1 Diagnostic]', {
-        axes: axes.map((a, idx) => `${idx}:${a.tag}[${a.min}..${a.def}..${a.max}]`),
-        avar,
-        baseFeatures: [..._rvrn.featureTag.entries()],
-        fvRecords: _rvrn.records.map((r, idx) => ({
-          idx,
-          conds: r.conds,
-          altFeatures: [...r.altMap.entries()].map(([fi, lks]) => ({ fi, tag: _rvrn.featureTag.get(fi), lks }))
-        }))
-      });
     }
     const effectiveFeatures = new Map(_rvrn.baseFeatureLookups);
     const EPS = 1 / 16384 + 1e-6;
@@ -5274,12 +5272,12 @@ function VarTT(buffer) {
         textStrokeOpacity.value = s.textStrokeOpacity;
         textStrokeOpacityVal.textContent = `${s.textStrokeOpacity}%`;
       }
-      if (s.textStrokeWidth !== undefined) {
-        textStrokeWidth = parseFloat(s.textStrokeWidth) || 0;
-        const displayW = textStrokeWidth > 0 ? textStrokeWidth : 4;
-        textStrokeWidthSlider.value = displayW;
-        textStrokeWidthVal.textContent = displayW;
-      }
+    }
+    if (s.textStrokeWidth !== undefined) {
+      textStrokeWidth = parseFloat(s.textStrokeWidth) || 0;
+      const displayW = textStrokeWidth > 0 ? textStrokeWidth : 4;
+      textStrokeWidthSlider.value = displayW;
+      textStrokeWidthVal.textContent = displayW;
     }
       syncInputToCell();
       render();
@@ -6026,7 +6024,6 @@ function VarTT(buffer) {
       const _pairsBefore = new Set([..._uploadedFamilies].filter(f => _variableFacePair(f)));
       let lastBatchFamilies = new Set();
       let skipped = 0;
-      let loaded = 0;
 
       for (const file of files) {
         // WOFF2 is explicitly unsupported (opentype.js can't parse it).
@@ -6160,7 +6157,6 @@ function VarTT(buffer) {
 
         lastFamily = family;
         lastBatchFamilies.add(family);
-        loaded++;
       }
 
       // Ensure one <option> per family that ended up in the map this batch.
@@ -6774,16 +6770,16 @@ function VarTT(buffer) {
             //   7 + variantCoords present ..... dev lineage (percent)
             //   7 without variantCoords ....... finalized 5.2.x (already px)
             //   >= 8 .......................... px
-            const _ver = (s.version === undefined) ? 0 : Number(s.version);
-            const isLegacyPercent = _ver <= 6 || (_ver === 7 && s.variantCoords !== undefined);
-            if (isLegacyPercent) {
-              const baseW = parseFloat(s.sliderWidth) || 340;
-              const baseH = parseFloat(s.sliderHeight) || 340;
-              const minDim = Math.min(baseW, baseH);
-              shapeStrokeWidth = Math.max(0.5, Math.round(((minDim * rawVal) / 100) * 2) / 2);
-            } else {
-              shapeStrokeWidth = rawVal;
+            function _migrateLegacyShapeStroke(val, s) {
+              const v = (s.version === undefined) ? 0 : Number(s.version);
+              if (v <= 6 || (v === 7 && s.variantCoords !== undefined)) {
+                const baseW = parseFloat(s.sliderWidth) || 340;
+                const baseH = parseFloat(s.sliderHeight) || 340;
+                return Math.max(0.5, Math.round(((Math.min(baseW, baseH) * val) / 100) * 2) / 2);
+              }
+              return val;
             }
+            shapeStrokeWidth = _migrateLegacyShapeStroke(rawVal, s);
           } else {
             shapeStrokeWidth = 4;
           }
@@ -6995,8 +6991,6 @@ function VarTT(buffer) {
       const cText2 = hexToRgba(textColor2.value, aText);
       const cBorder1 = hexToRgba(borderColor1.value, aBorder);
       const cBorder2 = hexToRgba(borderColor2.value, aBorder);
-
-      const bgImageLayer = bgIsGradient ? `linear-gradient(${bgAngle.value}deg, ${cBg1}, ${cBg2})` : `linear-gradient(${cBg1}, ${cBg1})`;
 
       let containerW, containerH, cellW, cellH, cols, rows;
       if (isPaperMode) {
@@ -7236,11 +7230,12 @@ function VarTT(buffer) {
  if (activeDesc && activeDesc._fontObj) fontObj = activeDesc._fontObj;
  }
  }
- if (fontObj && fontObj.tables && fontObj.tables.fvar) {
+ if (fontObj && typeof fontObj.getPath === 'function') {
+ const isVarFace = !!(fontObj.tables && fontObj.tables.fvar);
  const rawCoords = (activeDesc && activeDesc._synthVarCoords) ? activeDesc._synthVarCoords : variantCoords;
- const varCoords = _resolveVariationCoords(fontObj, rawCoords);
+ const varCoords = isVarFace ? _resolveVariationCoords(fontObj, rawCoords) : undefined;
  glyphData = _textToSvgPath(fontObj, cellText, uniformFontSize, scx, scy, weight, style, varCoords);
- _prevVarCoords = varCoords;
+ if (isVarFace) _prevVarCoords = varCoords;
  }
         const isNativeUI = document.documentElement.hasAttribute('data-circole-native-ui');
         const dyAttr = isNativeUI ? ' dy="-0.06em"' : ' dy="0"';
@@ -7330,7 +7325,23 @@ function VarTT(buffer) {
           fillElementHtml = `<text x="${scx}" y="${scy}" text-anchor="middle" dominant-baseline="central"${dyAttr} fill="${fillRef}" fill-opacity="${fillOpac}" style="font-family: ${_ffQuoted}; font-size: ${uniformFontSize}px; font-weight: ${weight}; font-style: ${style};${_fvsAttr}">${escapeXml(cellText)}</text>`;
         }
 
-        numSvg.innerHTML = `<defs>${svgDefs}</defs>${strokeElementHtml}${fillElementHtml}`;
+        let tsShadowHtml = '';
+        const _tsDiv = nw.querySelector('.cell-text-shadow');
+        if (glyphData && _tsDiv) _tsDiv.remove();
+        if (textShadowEnabled.checked && glyphData) {
+          const tsOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+          const tsBlur = parseInt(textShadowBlur.value, 10);
+          const tsAlpha = parseInt(textShadowOpacity.value, 10) / 100;
+          let tsFillRef = hexToRgba(textShadowColor1.value, tsAlpha);
+          if (textShadowIsGradient) {
+            const tsGradId = `prevTextShadowGrad_${i}`;
+            const c = cssGradientCoords(scx - gradW / 2, scy - gradH / 2, gradW, gradH, parseInt(textShadowGradAngle.value, 10));
+            svgDefs += svgLinearGradientDef(tsGradId, c.x0, c.y0, c.x1, c.y1, textShadowColor1.value, tsAlpha, textShadowColor2.value, tsAlpha);
+            tsFillRef = `url(#${tsGradId})`;
+          }
+          tsShadowHtml = `<path d="${glyphData.d}" fill="${tsFillRef}" transform="translate(${tsOff.x} ${tsOff.y})"${tsBlur > 0 ? ` style="filter: blur(${tsBlur}px)"` : ''}/>`;
+        }
+        numSvg.innerHTML = `<defs>${svgDefs}</defs>${tsShadowHtml}${strokeElementHtml}${fillElementHtml}`;
         nw.appendChild(numSvg);
 
         shapeEl.appendChild(nw);
@@ -7512,11 +7523,7 @@ function VarTT(buffer) {
     }
 
     async function buildSvgForExport() {
-      // Clear rasterized cache for this new SVG export
-      buildSvgCellMarkup._cachedShapePng = null;
-      buildSvgCellMarkup._cachedShapeKey = null;
-      buildSvgCellMarkup._cachedShapeDefId = null;
-      buildSvgCellMarkup._textPngCache = new Map();
+      // Reset text fallback flag for this new SVG export
       buildSvgCellMarkup._textFallbackUsed = false;
 	  
       const fs = parseInt(sliderSize.value, 10);
@@ -7636,6 +7643,11 @@ ${cellsMarkup}${gridMarkup}</svg>`;
     // so we bake the blur into a raster image whenever the active font is a PC font.
 	
 	// Pre-renders a blurred shadow to a base64 PNG for Adobe Illustrator compatibility.
+    function _renderBlurredTextShadow(opts) {
+      if (opts.useSvgText) return _renderBlurredVarTextShadow(opts);
+      return Promise.resolve(_renderBlurredShadowPNG(opts));
+    }
+
     function _renderBlurredShadowPNG(opts) {
       const {
         kind, cw, ch, r, isRound,
@@ -7872,13 +7884,6 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       let defs = '';
       let markup = '';
 	  
-	  let varTransform = '';
-      if (isVar && typeof variantCoords['slnt'] === 'number' && variantCoords['slnt'] !== 0) {
-        const skewAngle = -variantCoords['slnt'];
-        // If the SVG viewer ignores font-variation-settings, skewX matrix ensures equivalent slant
-        // while standard font-variation-settings keeps it dynamic
-      }
-
       // --- SHAPE SHADOW ---
       if (showBorder && shapeShadowEnabled.checked) {
         const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
@@ -7972,7 +7977,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
           if (isVar && !glyphData) {
             // Variable font whose outlines could not be traced: micro-SVG raster (needs the embedded font).
             const shadowBoxDim = Math.max(gradW, fontSize * 2.2);
-            const png = await _renderBlurredVarTextShadow({
+            const png = await _renderBlurredTextShadow({ useSvgText: true,
               cw: shadowBoxDim, ch: shadowBoxDim,
               text, fontSize, cleanFont,
               varTextStyle: `font-family: '${cleanFont}'; font-size: ${fontSize}px; font-weight: ${fallbackWeight}; font-style: ${fallbackStyle}${_fvsAttr}; font-synthesis: none;`,
@@ -7988,7 +7993,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
             markup += `  <image href="${png.dataUrl}" xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
           } else {
             // Synchronous, lightweight and 100% readable in Illustrator
-            const png = _renderBlurredShadowPNG({
+            const png = await _renderBlurredTextShadow({
               kind: 'text',
               cw: gradW, ch: gradH, r: 0, isRound: false,
               text, fontSize, fontObj, weight, style, cleanFont, coords: varCoords,
