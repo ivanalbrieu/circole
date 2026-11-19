@@ -1098,7 +1098,7 @@
           <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
         </g>
       </svg>
-      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v6.0-dev</span>
+      <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800">v6.0</span>
       <span class="safe-mode-chip" title="Safe Mode Active"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1170,7 +1170,7 @@
               <path d="M369.93,75.46c0,5.1,1.06,9.04,3.17,11.81,2.11,2.77,5.2,4.16,9.26,4.16,3.21,0,5.78-.64,7.72-1.93,1.93-1.29,3.24-2.92,3.93-4.9l6.5,1.85c-2.66,7.02-8.71,10.54-18.15,10.54-6.58,0-11.6-1.96-15.04-5.88s-5.16-9.75-5.16-17.49,1.72-12.99,5.16-16.91,8.36-5.88,14.75-5.88,11.47,1.98,14.73,5.93,4.9,9.86,4.9,17.74v.99h-31.77v-.03ZM394.05,69.79c-.41-4.69-1.6-8.11-3.58-10.27-1.97-2.15-4.81-3.23-8.52-3.23s-6.44,1.2-8.54,3.6c-2.1,2.4-3.23,5.7-3.4,9.9h24.04Z"/>
             </g>
           </svg>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v6.0-dev</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800 shrink-0">v6.0</span>
           <span id="safeModeChip" class="safe-mode-chip" title="Safe mode: vector export unavailable"><span class="warn-tri" aria-hidden="true"></span> <span class="lblSafeModeText">Safe Mode</span></span>
         </div>
         <button id="btnCloseSidebar" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
@@ -1742,7 +1742,7 @@
             </svg>
           </div>
           <div class="flex items-center justify-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v6.0-dev</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg mb-1" id="helpHeaderApp">Circole v6.0</h2>
           </div>
           <p id="helpDescApp" class="text-xs text-slate-500 dark:text-slate-400 max-w-[44ch] mx-auto">A modern web-based batch label maker and sheet production suite built for precise layouts, custom gradients, shadows, and multi-cell printing.</p>
         </div>
@@ -1858,7 +1858,7 @@
       const safeMode = nativeUI || vectorBroken;
 
       return {
-        version: '6.0-dev',
+        version: '6.0',
         hasTailwind: !nativeUI, 
         hasLucide, 
         hasOpentype,
@@ -2300,13 +2300,6 @@
                             6: 'Semi Expanded', 7: 'Expanded', 8: 'Extra Expanded', 9: 'Ultra Expanded' };
     const _WIDTH_WORD_SRC = '(?:ultra|extra|semi)?[\\s-]*(?:condensed|cond|narrow|compressed|compact|extended|expanded|wide)';
     const _WIDTH_WORD_RE = new RegExp('\\b' + _WIDTH_WORD_SRC + '\\b', 'i');
-    const _WIDTH_WORD_RE_G = new RegExp('\\b' + _WIDTH_WORD_SRC + '\\b', 'gi');
-
-    function _stripWidthWords(label) {
-      if (!label) return label;
-      return String(label).replace(_WIDTH_WORD_RE_G, ' ').replace(/\s+/g, ' ').trim();
-    }
-
     function _detectWidthClass(font) {
       const w = font && font.tables && font.tables.os2 && font.tables.os2.usWidthClass;
       return (typeof w === 'number' && w >= 1 && w <= 9) ? w : 5;
@@ -2342,21 +2335,32 @@
 	// regardless of what opentype.parse() or Chrome's OTS think about its other
 	// tables. Reads only the sfnt header + table directory: the font's glyf/cmap/
 	// GDEF/COLR tables are never touched.
-	function _hasFvarTable(buffer) {
+	const _sfntIndexCache = new WeakMap();
+	function _sfntTableIndex(buffer) {
+	  if (!buffer || typeof buffer !== 'object') return new Map();
+	  if (_sfntIndexCache.has(buffer)) return _sfntIndexCache.get(buffer);
+	  const index = new Map();
 	  try {
 		const dv = new DataView(buffer);
-		if (dv.byteLength < 12) return false;
-		const numTables = dv.getUint16(4);
-		for (let i = 0; i < numTables; i++) {
-		  const o = 12 + 16 * i;
-		  if (o + 4 > dv.byteLength) return false;
-		  const tag = String.fromCharCode(
-			dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3)
-		  );
-		  if (tag === 'fvar') return true;
+		if (dv.byteLength >= 12) {
+		  const numTables = dv.getUint16(4);
+		  for (let i = 0; i < numTables; i++) {
+			const o = 12 + 16 * i;
+			if (o + 4 > dv.byteLength) break;
+			const tag = String.fromCharCode(
+			  dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3)
+			);
+			if (index.has(tag) || o + 16 > dv.byteLength) continue;
+			index.set(tag, { tag, checksum: dv.getUint32(o + 4), off: dv.getUint32(o + 8), len: dv.getUint32(o + 12) });
+		  }
 		}
-		return false;
-	  } catch (_) { return false; }
+	  } catch (_) {}
+	  _sfntIndexCache.set(buffer, index);
+	  return index;
+	}
+
+	function _hasFvarTable(buffer) {
+	  try { return _sfntTableIndex(buffer).has('fvar'); } catch (_) { return false; }
 	}
 
 	function _parseFvarFromBuffer(buffer, parsedFont) {
@@ -2364,15 +2368,9 @@
 	    if (!buffer) return null;
 	    const dv = new DataView(buffer);
 	    if (dv.byteLength < 12) return null;
-	    const numTables = dv.getUint16(4);
-	    let fvarOff = 0, nameOff = 0;
-	    for (let i = 0; i < numTables; i++) {
-	      const o = 12 + 16 * i;
-	      if (o + 16 > dv.byteLength) break;
-	      const tag = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
-	      if (tag === 'fvar') fvarOff = dv.getUint32(o + 8);
-	      else if (tag === 'name') nameOff = dv.getUint32(o + 8);
-	    }
+	    const tables = _sfntTableIndex(buffer);
+	    const fvarOff = tables.has('fvar') ? tables.get('fvar').off : 0;
+	    const nameOff = tables.has('name') ? tables.get('name').off : 0;
 	    if (!fvarOff || fvarOff + 16 > dv.byteLength) return null;
 
 	    const readNameString = (nameId) => {
@@ -2461,21 +2459,15 @@
 	// FontFace renders the color layers natively regardless of what
 	// opentype.js thinks of the font's other tables.
 	function _hasColrTable(buffer) {
-	  try {
-		if (!buffer) return false;
-		const dv = new DataView(buffer);
-		if (dv.byteLength < 12) return false;
-		const numTables = dv.getUint16(4);
-		for (let i = 0; i < numTables; i++) {
-		  const o = 12 + 16 * i;
-		  if (o + 4 > dv.byteLength) return false;
-		  const tag = String.fromCharCode(
-			dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3)
-		  );
-		  if (tag === 'COLR') return true;
-		}
-		return false;
-	  } catch (_) { return false; }
+	  try { return !!buffer && _sfntTableIndex(buffer).has('COLR'); } catch (_) { return false; }
+	}
+
+	function _hasColorLayers(fontObj) {
+	  return !!(fontObj && ((fontObj.tables && fontObj.tables.colr) || (fontObj._circoleBuf && _hasColrTable(fontObj._circoleBuf))));
+	}
+
+	function _needsTextFallback(glyphData) {
+	  return !glyphData;
 	}
 
     function _scanFamilyOf(fd) {
@@ -2621,7 +2613,6 @@
     const FONT_SIZE_MAX_NO_BORDER = 1000;
 	
 	const GRID_BORDER_DASH = [3, 3];
-	const GRID_BORDER_COLOR = 'rgba(100, 116, 139, 0.5)';
 	const GRID_BORDER_COLOR_HEX = '#64748b';
 	const GRID_BORDER_WIDTH = 1;
 
@@ -2924,16 +2915,6 @@
         pairs: [[400,'normal']]
       }
     };
-
-    const GOOGLE_FONT_TTF_URLS = Object.fromEntries(
-      Object.entries(GOOGLE_FONT_VARIANTS).map(([fam, cfg]) => {
-        const urls = {};
-        for (const [w, s] of cfg.pairs) {
-          urls[`${w}_${s}`] = `https://cdn.jsdelivr.net/fontsource/fonts/${cfg.slug}@${cfg.version}/latin-${w}-${s}.ttf`;
-        }
-        return [fam, urls];
-      })
-    );
 
     function _buildGoogleVariantDescriptors(family, forceStatic) {
       const cfg = GOOGLE_FONT_VARIANTS[family];
@@ -3276,14 +3257,6 @@
 	  render();
 	}
 
-	function setFaceItalic(on) {
-	  // Back-compat wrapper: resolves the pair from the live selection.
-	  const fam = getCleanFontFamily(fontSelect.value);
-	  const pair = _variableFacePair(fam);
-	  if (!pair) return;
-	  setFaceItalicWithPair(pair, on);
-	}
-
     function _buildFaceToggleRow(pair) {
       const t = translations[currentLang] || translations.en;
       const row = document.createElement('div');
@@ -3375,17 +3348,6 @@
         }
         return out;
       } catch (_) { return []; }
-    }
-
-    // True when two coord maps are numerically identical (order-independent).
-    function _coordsMatch(a, b) {
-      const ka = Object.keys(a), kb = Object.keys(b);
-      if (ka.length !== kb.length) return false;
-      for (const k of ka) {
-        if (!(k in b)) return false;
-        if (Math.abs(Number(a[k]) - Number(b[k])) > 1e-6) return false;
-      }
-      return true;
     }
 
     // Current state == this instance's coords, where "current" means every axis
@@ -4702,13 +4664,8 @@ function VarTT(buffer) {
       ];
     }
     function _sfntTable(buf, tag) {
-      const dv = new DataView(buf), n = dv.getUint16(4);
-      for (let i = 0; i < n; i++) {
-        const o = 12 + 16 * i;
-        const t = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
-        if (t === tag) return { off: dv.getUint32(o + 8), len: dv.getUint32(o + 12) };
-      }
-      return null;
+      const e = _sfntTableIndex(buf).get(tag);
+      return e ? { off: e.off, len: e.len } : null;
     }
     function _getColrInfo(font) {
       if (!font || !font._circoleBuf) return null;
@@ -5730,7 +5687,7 @@ function VarTT(buffer) {
       setText('helpModalTitle', t.helpTitle);
       setText('helpHeaderApp', 'Circole ' + (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version
         ? 'v' + window.__CIRCOLE_ENV.version.replace(/-dev$/, '-dev')
-        : 'v6.0-dev'));
+        : 'v6.0'));
       setText('helpDescApp', t.helpAppDesc);
       setText('helpHeaderCredits', t.helpCreators);
       setText('creditDevs', t.helpDevs);
@@ -6984,13 +6941,9 @@ function VarTT(buffer) {
 
       const aBg = parseInt(bgOpacity.value, 10) / 100;
       const aText = parseInt(textOpacity.value, 10) / 100;
-      const aBorder = parseInt(borderOpacity.value, 10) / 100;
       const cBg1 = hexToRgba(bgColor1.value, aBg);
       const cBg2 = hexToRgba(bgColor2.value, aBg);
       const cText1 = hexToRgba(textColor1.value, aText);
-      const cText2 = hexToRgba(textColor2.value, aText);
-      const cBorder1 = hexToRgba(borderColor1.value, aBorder);
-      const cBorder2 = hexToRgba(borderColor2.value, aBorder);
 
       let containerW, containerH, cellW, cellH, cols, rows;
       if (isPaperMode) {
@@ -7279,7 +7232,7 @@ function VarTT(buffer) {
           }
 
           const sMaskId = `prevStrokeMask_${i}`;
-          if (glyphData) {
+          if (!_needsTextFallback(glyphData)) {
             svgDefs += `<mask id="${sMaskId}" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="-5000" y="-5000" width="10000" height="10000">
               <rect x="-5000" y="-5000" width="10000" height="10000" fill="#ffffff"/>
               <path d="${glyphData.d}" fill="#000000"/>
@@ -7300,8 +7253,7 @@ function VarTT(buffer) {
         // fall through to the monochrome path without this check. FontFace
         // rendering uses the raw buffer, not opentype.js, so the browser
         // renders COLR correctly as long as we route through <text>.
- const _fontHasColr = (fontObj && fontObj.tables && fontObj.tables.colr) ||
- (fontObj && fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false);
+ const _fontHasColr = _hasColorLayers(fontObj);
  let fillElementHtml;
  let _colorVecPrev = null;
  if (_fontHasColr) {
@@ -7319,7 +7271,7 @@ function VarTT(buffer) {
           // fill/fill-opacity we pass serve as a fallback for any glyphs
           // without COLR entries (browsers ignore them for COLR glyphs).
           fillElementHtml = `<text x="${scx}" y="${scy}" text-anchor="middle" dominant-baseline="central"${dyAttr} fill="${fillRef}" fill-opacity="${fillOpac}" style="font-family: ${_ffQuoted}; font-size: ${uniformFontSize}px; font-weight: ${weight}; font-style: ${style};${_fvsAttr}">${escapeXml(cellText)}</text>`;
-        } else if (glyphData) {
+        } else if (!_needsTextFallback(glyphData)) {
           fillElementHtml = `<path d="${glyphData.d}" fill="${fillRef}" fill-opacity="${fillOpac}"/>`;
         } else {
           fillElementHtml = `<text x="${scx}" y="${scy}" text-anchor="middle" dominant-baseline="central"${dyAttr} fill="${fillRef}" fill-opacity="${fillOpac}" style="font-family: ${_ffQuoted}; font-size: ${uniformFontSize}px; font-weight: ${weight}; font-style: ${style};${_fvsAttr}">${escapeXml(cellText)}</text>`;
@@ -7522,11 +7474,31 @@ function VarTT(buffer) {
     </style>\n`;
     }
 
+    // Immutable snapshot of every control the export reads. Taken once at export start so an export
+    // cannot see half-edited UI state. Keys match the control names; values are the raw .value / .checked.
+    function _serializeExportState() {
+      return Object.freeze({
+        sliderSize: sliderSize.value, sliderWidth: sliderWidth.value, sliderHeight: sliderHeight.value, sliderRoundness: sliderRoundness.value,
+        bgColor1: bgColor1.value, bgColor2: bgColor2.value, bgOpacity: bgOpacity.value, bgAngle: bgAngle.value,
+        textColor1: textColor1.value, textColor2: textColor2.value, textOpacity: textOpacity.value, textAngle: textAngle.value,
+        borderColor1: borderColor1.value, borderColor2: borderColor2.value, borderOpacity: borderOpacity.value, borderAngle: borderAngle.value,
+        shapeShadowEnabled: shapeShadowEnabled.checked, shapeShadowBlur: shapeShadowBlur.value, shapeShadowDistance: shapeShadowDistance.value,
+        shapeShadowAngle: shapeShadowAngle.value, shapeShadowColor1: shapeShadowColor1.value, shapeShadowColor2: shapeShadowColor2.value,
+        shapeShadowGradAngle: shapeShadowGradAngle.value, shapeShadowOpacity: shapeShadowOpacity.value,
+        textShadowEnabled: textShadowEnabled.checked, textShadowBlur: textShadowBlur.value, textShadowDistance: textShadowDistance.value,
+        textShadowAngle: textShadowAngle.value, textShadowColor1: textShadowColor1.value, textShadowColor2: textShadowColor2.value,
+        textShadowGradAngle: textShadowGradAngle.value, textShadowOpacity: textShadowOpacity.value,
+        textStrokeOpacity: textStrokeOpacity.value, textStrokeColor1: textStrokeColor1.value, textStrokeColor2: textStrokeColor2.value,
+        textStrokeGradAngle: textStrokeGradAngle.value
+      });
+    }
+
     async function buildSvgForExport() {
+      const S = _serializeExportState();
       // Reset text fallback flag for this new SVG export
       buildSvgCellMarkup._textFallbackUsed = false;
 	  
-      const fs = parseInt(sliderSize.value, 10);
+      const fs = parseInt(S.sliderSize, 10);
       const activeFontRaw = getComputedStyle(document.documentElement).getPropertyValue('--active-font');
       const cleanFont = getCleanFontFamily(activeFontRaw);
       
@@ -7537,12 +7509,12 @@ function VarTT(buffer) {
       const _vsSvg = _variantKeyToCssWeightStyle(selectedVariant);
       const weight = _vsSvg.weight >= 700 ? 'bold' : 'normal';
       const style = _vsSvg.style;
-      const w = parseInt(sliderWidth.value, 10);
-      const h = parseInt(sliderHeight.value, 10);
+      const w = parseInt(S.sliderWidth, 10);
+      const h = parseInt(S.sliderHeight, 10);
 
       if (!isPaperMode) {
         const text = constructLabel();
-        return await buildSvgSingle(text, w, h, fs, cleanFont, weight, style);
+        return await buildSvgSingle(text, w, h, fs, cleanFont, weight, style, S);
       }
 
       const ps = getPaperSize();
@@ -7558,22 +7530,22 @@ function VarTT(buffer) {
         cleanFont, weight, style
       );
 
-      const sBlur = parseInt(shapeShadowBlur.value, 10);
-      const tBlur = parseInt(textShadowBlur.value, 10);
+      const sBlur = parseInt(S.shapeShadowBlur, 10);
+      const tBlur = parseInt(S.textShadowBlur, 10);
 
       // Always include GOOGLE_FONTS_SVG_STYLE. Use explicit pixel filter regions so Illustrator
       // cannot misparse the filter bounds based on the element's bounding box.
       let rootDefs = GOOGLE_FONTS_SVG_STYLE + (_variableFonts.has(cleanFont) ? '' : _getEmbeddedUploadedFontsCSS(cleanFont));
-      const _sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
-      const _tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+      const _sOff = getShadowOffsets(parseInt(S.shapeShadowDistance, 10), parseInt(S.shapeShadowAngle, 10));
+      const _tOff = getShadowOffsets(parseInt(S.textShadowDistance, 10), parseInt(S.textShadowAngle, 10));
       const _sMargin = Math.abs(_sOff.x) + sBlur * 2 + Math.abs(_sOff.y) + sBlur * 2 + 40;
       const _tMargin = Math.abs(_tOff.x) + tBlur * 2 + Math.abs(_tOff.y) + tBlur * 2 + 40;
-      if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
+      if (showBorder && S.shapeShadowEnabled && sBlur > 0) {
         rootDefs += `    <filter id="svgShapeShadow" filterUnits="userSpaceOnUse" x="${- _sMargin}" y="${- _sMargin}" width="${containerW + _sMargin * 2}" height="${containerH + _sMargin * 2}">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
-      if (textShadowEnabled.checked && tBlur > 0) {
+      if (S.textShadowEnabled && tBlur > 0) {
         rootDefs += `    <filter id="svgTextShadow" filterUnits="userSpaceOnUse" x="${- _tMargin}" y="${- _tMargin}" width="${containerW + _tMargin * 2}" height="${containerH + _tMargin * 2}">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
@@ -7594,7 +7566,7 @@ function VarTT(buffer) {
         const drawW = showBorder ? cw : ccw;
         const drawH = showBorder ? ch : cch;
 
-        const res = await buildSvgCellMarkup(ccx, ccy, drawW, drawH, label, uniformFs, cleanFont, weight, style);
+        const res = await buildSvgCellMarkup(ccx, ccy, drawW, drawH, label, uniformFs, cleanFont, weight, style, S);
         rootDefs += res.defs;
         cellsMarkup += res.markup;
       }
@@ -7836,16 +7808,16 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       };
     }
 
-    async function buildSvgCellMarkup(cx, cy, cw, ch, text, fontSize, cleanFont, weight, style) {
-      const r = parseInt(sliderRoundness.value, 10);
-      const bg  = getHexAndAlpha(bgColor1.value, bgOpacity.value);
-      const bg2 = getHexAndAlpha(bgColor2.value, bgOpacity.value);
-      const txt = getHexAndAlpha(textColor1.value, textOpacity.value);
-      const txt2 = getHexAndAlpha(textColor2.value, textOpacity.value);
-      const bdr  = getHexAndAlpha(borderColor1.value, borderOpacity.value);
-      const bdr2 = getHexAndAlpha(borderColor2.value, borderOpacity.value);
-      const sBlur = parseInt(shapeShadowBlur.value, 10);
-      const tBlur = parseInt(textShadowBlur.value, 10);
+    async function buildSvgCellMarkup(cx, cy, cw, ch, text, fontSize, cleanFont, weight, style, S = _serializeExportState()) {
+      const r = parseInt(S.sliderRoundness, 10);
+      const bg  = getHexAndAlpha(S.bgColor1, S.bgOpacity);
+      const bg2 = getHexAndAlpha(S.bgColor2, S.bgOpacity);
+      const txt = getHexAndAlpha(S.textColor1, S.textOpacity);
+      const txt2 = getHexAndAlpha(S.textColor2, S.textOpacity);
+      const bdr  = getHexAndAlpha(S.borderColor1, S.borderOpacity);
+      const bdr2 = getHexAndAlpha(S.borderColor2, S.borderOpacity);
+      const sBlur = parseInt(S.shapeShadowBlur, 10);
+      const tBlur = parseInt(S.textShadowBlur, 10);
 
       const isVar = _variableFonts.has(cleanFont);
       let effWeight = weight === 'bold' ? 700 : (parseInt(weight, 10) || 400);
@@ -7885,30 +7857,30 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       let markup = '';
 	  
       // --- SHAPE SHADOW ---
-      if (showBorder && shapeShadowEnabled.checked) {
-        const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
+      if (showBorder && S.shapeShadowEnabled) {
+        const sOff = getShadowOffsets(parseInt(S.shapeShadowDistance, 10), parseInt(S.shapeShadowAngle, 10));
 
         if (sBlur > 0) {
           const png = _renderBlurredShadowPNG({
             kind: 'shape', cw, ch, r, isRound,
-            fill1: shapeShadowColor1.value,
-            fill2: shapeShadowColor2.value,
+            fill1: S.shapeShadowColor1,
+            fill2: S.shapeShadowColor2,
             isGradient: shapeShadowIsGradient,
-            gradAngle: parseInt(shapeShadowGradAngle.value, 10),
-            alpha: parseInt(shapeShadowOpacity.value, 10) / 100,
+            gradAngle: parseInt(S.shapeShadowGradAngle, 10),
+            alpha: parseInt(S.shapeShadowOpacity, 10) / 100,
             blurPx: sBlur
           });
           const imgX = (cx - cw / 2 + sOff.x + png.left).toFixed(2);
           const imgY = (cy - ch / 2 + sOff.y + png.top).toFixed(2);
           markup += `  <image href="${png.dataUrl}" xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
         } else {
-          const ss1 = getHexAndAlpha(shapeShadowColor1.value, shapeShadowOpacity.value);
-          const ss2 = getHexAndAlpha(shapeShadowColor2.value, shapeShadowOpacity.value);
+          const ss1 = getHexAndAlpha(S.shapeShadowColor1, S.shapeShadowOpacity);
+          const ss2 = getHexAndAlpha(S.shapeShadowColor2, S.shapeShadowOpacity);
           let sFill = ss1.hex;
           let sFillOpacity = ss1.alpha;
           if (shapeShadowIsGradient) {
             const id = nextSvgGradId('shapeShadowGrad');
-            const c = cssGradientCoords(cx + sOff.x - cw / 2, cy + sOff.y - ch / 2, cw, ch, parseInt(shapeShadowGradAngle.value, 10));
+            const c = cssGradientCoords(cx + sOff.x - cw / 2, cy + sOff.y - ch / 2, cw, ch, parseInt(S.shapeShadowGradAngle, 10));
             defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ss1.hex, ss1.alpha, ss2.hex, ss2.alpha) + '\n';
             sFill = `url(#${id})`;
             sFillOpacity = '1';
@@ -7926,7 +7898,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       let bgFillOpacity = bg.alpha;
       if (bgIsGradient) {
         const id = nextSvgGradId('bgGrad');
-        const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(bgAngle.value, 10));
+        const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(S.bgAngle, 10));
         defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, bg.hex, bg.alpha, bg2.hex, bg2.alpha) + '\n';
         bgFill = `url(#${id})`;
         bgFillOpacity = '1';
@@ -7946,7 +7918,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
           let bOpacity = bdr.alpha;
           if (borderIsGradient) {
             const id = nextSvgGradId('bdrGrad');
-            const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(borderAngle.value, 10));
+            const c = cssGradientCoords(cx - cw / 2, cy - ch / 2, cw, ch, parseInt(S.borderAngle, 10));
             defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, bdr.hex, bdr.alpha, bdr2.hex, bdr2.alpha) + '\n';
             bColor = `url(#${id})`;
             bOpacity = '1';
@@ -7970,8 +7942,8 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       }
 
       // --- TEXT SHADOW ---
-      if (textShadowEnabled.checked) {
-        const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
+      if (S.textShadowEnabled) {
+        const tOff = getShadowOffsets(parseInt(S.textShadowDistance, 10), parseInt(S.textShadowAngle, 10));
 
         if (tBlur > 0) {
           if (isVar && !glyphData) {
@@ -7981,11 +7953,11 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
               cw: shadowBoxDim, ch: shadowBoxDim,
               text, fontSize, cleanFont,
               varTextStyle: `font-family: '${cleanFont}'; font-size: ${fontSize}px; font-weight: ${fallbackWeight}; font-style: ${fallbackStyle}${_fvsAttr}; font-synthesis: none;`,
-              fill1: textShadowColor1.value,
-              fill2: textShadowColor2.value,
+              fill1: S.textShadowColor1,
+              fill2: S.textShadowColor2,
               isGradient: textShadowIsGradient,
-              gradAngle: parseInt(textShadowGradAngle.value, 10),
-              alpha: parseInt(textShadowOpacity.value, 10) / 100,
+              gradAngle: parseInt(S.textShadowGradAngle, 10),
+              alpha: parseInt(S.textShadowOpacity, 10) / 100,
               blurPx: tBlur
             });
             const imgX = (cx + tOff.x - png.width / 2).toFixed(2);
@@ -7997,11 +7969,11 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
               kind: 'text',
               cw: gradW, ch: gradH, r: 0, isRound: false,
               text, fontSize, fontObj, weight, style, cleanFont, coords: varCoords,
-              fill1: textShadowColor1.value,
-              fill2: textShadowColor2.value,
+              fill1: S.textShadowColor1,
+              fill2: S.textShadowColor2,
               isGradient: textShadowIsGradient,
-              gradAngle: parseInt(textShadowGradAngle.value, 10),
-              alpha: parseInt(textShadowOpacity.value, 10) / 100,
+              gradAngle: parseInt(S.textShadowGradAngle, 10),
+              alpha: parseInt(S.textShadowOpacity, 10) / 100,
               blurPx: tBlur
             });
             const imgX = (cx + tOff.x - gradW / 2 + png.left).toFixed(2);
@@ -8009,14 +7981,14 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
             markup += `  <image href="${png.dataUrl}" xlink:href="${png.dataUrl}" x="${imgX}" y="${imgY}" width="${png.width}" height="${png.height}"/>\n`;
           }
         } else {
-          const ts1 = getHexAndAlpha(textShadowColor1.value, textShadowOpacity.value);
-          const ts2 = getHexAndAlpha(textShadowColor2.value, textShadowOpacity.value);
+          const ts1 = getHexAndAlpha(S.textShadowColor1, S.textShadowOpacity);
+          const ts2 = getHexAndAlpha(S.textShadowColor2, S.textShadowOpacity);
           let tsFill = ts1.hex;
           let tsFillOpacity = ts1.alpha;
 
           if (textShadowIsGradient) {
             const id = nextSvgGradId('txtShadowGrad');
-            const c = cssGradientCoords(cx + tOff.x - gradW / 2, cy + tOff.y - gradH / 2, gradW, gradH, parseInt(textShadowGradAngle.value, 10));
+            const c = cssGradientCoords(cx + tOff.x - gradW / 2, cy + tOff.y - gradH / 2, gradW, gradH, parseInt(S.textShadowGradAngle, 10));
             defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, ts1.hex, ts1.alpha, ts2.hex, ts2.alpha) + '\n';
             tsFill = `url(#${id})`;
             tsFillOpacity = '1';
@@ -8040,30 +8012,30 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       let tFillOpacity = txt.alpha;
       if (textIsGradient) {
         const id = nextSvgGradId('textGrad');
-        const c = cssGradientCoords(cx - gradW / 2, cy - gradH / 2, gradW, gradH, parseInt(textAngle.value, 10));
+        const c = cssGradientCoords(cx - gradW / 2, cy - gradH / 2, gradW, gradH, parseInt(S.textAngle, 10));
         defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, txt.hex, txt.alpha, txt2.hex, txt2.alpha) + '\n';
         tFill = `url(#${id})`;
         tFillOpacity = '1';
       }
 
       const strokeW = Math.max(0.5, textStrokeWidth);
-      const sAlpha = (parseInt(textStrokeOpacity.value, 10) / 100).toFixed(2);
+      const sAlpha = (parseInt(S.textStrokeOpacity, 10) / 100).toFixed(2);
       let strokeMarkup = '';
 
       if (textStrokeOn && textStrokeWidth > 0) {
-        let strokeFill = textStrokeColor1.value;
+        let strokeFill = S.textStrokeColor1;
         let strokeOpac = sAlpha;
 
         if (textStrokeIsGradient) {
           const id = nextSvgGradId('textStrokeGrad');
-          const c = cssGradientCoords(cx - gradW / 2, cy - gradH / 2, gradW, gradH, parseInt(textStrokeGradAngle.value, 10));
-          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, textStrokeColor1.value, sAlpha, textStrokeColor2.value, sAlpha) + '\n';
+          const c = cssGradientCoords(cx - gradW / 2, cy - gradH / 2, gradW, gradH, parseInt(S.textStrokeGradAngle, 10));
+          defs += '    ' + svgLinearGradientDef(id, c.x0, c.y0, c.x1, c.y1, S.textStrokeColor1, sAlpha, S.textStrokeColor2, sAlpha) + '\n';
           strokeFill = `url(#${id})`;
           strokeOpac = '1';
         }
 
         const maskId = nextSvgGradId('textStrokeMask');
-        if (glyphData) {
+        if (!_needsTextFallback(glyphData)) {
           defs += `    <mask id="${maskId}" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="-5000" y="-5000" width="10000" height="10000">
       <rect x="-5000" y="-5000" width="10000" height="10000" fill="#ffffff"/>
       <path d="${glyphData.d}" fill="#000000"/>
@@ -8081,17 +8053,13 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       const fgOpacAttr = (tFillOpacity !== '1.00' && tFillOpacity !== 1) ? ` fill-opacity="${tFillOpacity}"` : '';
 
       // COLR detection — see render() for why we scan the raw buffer as
- // COLR detection — see render() for why we scan the raw buffer as
- // well as fontObj.tables.colr. Belt-and-braces: prefer opentype.js,
- // fall back to raw scan.
- const _fontHasColr = hasFontObj && (
- !!(fontObj.tables && fontObj.tables.colr) ||
- (fontObj._circoleBuf ? _hasColrTable(fontObj._circoleBuf) : false)
- );
+      // well as fontObj.tables.colr. Belt-and-braces: prefer opentype.js,
+      // fall back to raw scan.
+      const _fontHasColr = hasFontObj && _hasColorLayers(fontObj);
  let _colorVec = null;
  if (_fontHasColr) {
  const _effCoords = varCoords || (fontObj && fontObj.tables && fontObj.tables.fvar ? _resolveVariationCoords(fontObj, variantCoords) : {});
- try { _colorVec = _textToColorLayers(fontObj, text, fontSize, cx, cy, _effCoords, textColor1.value); } catch (_) { _colorVec = null; }
+ try { _colorVec = _textToColorLayers(fontObj, text, fontSize, cx, cy, _effCoords, S.textColor1); } catch (_) { _colorVec = null; }
  }
         if (_colorVec) {
         defs += _colorVec.defs;
@@ -8122,7 +8090,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
           markup += `  <text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" dy="0.35em" style="font-family: '${cleanFont}'; font-size: ${fontSize}px; font-weight: ${fallbackWeight}; font-style: ${fallbackStyle}${_fvsAttr}; font-synthesis: none;" text-anchor="middle">${escapeXml(text)}</text>\n`;
           buildSvgCellMarkup._textFallbackUsed = true;
         }
-      } else if (glyphData) {
+      } else if (!_needsTextFallback(glyphData)) {
         markup += strokeMarkup;
         markup += `  <path d="${glyphData.d}" fill="${tFill}"${fgOpacAttr}/>\n`;
       } else {
@@ -8133,7 +8101,7 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       return { defs, markup };
     }
 
-    async function buildSvgSingle(text, w, h, fs, cleanFont, weight, style) {
+    async function buildSvgSingle(text, w, h, fs, cleanFont, weight, style, S = _serializeExportState()) {
       const computedFs = computeUniformFontSize(
         text, showBorder, w, h, w, h, fs,
         cleanFont, weight, style
@@ -8143,16 +8111,16 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
         ? Math.max(0.5, shapeStrokeWidth)
         : 0;
 
-      const sOff = getShadowOffsets(parseInt(shapeShadowDistance.value, 10), parseInt(shapeShadowAngle.value, 10));
-      const tOff = getShadowOffsets(parseInt(textShadowDistance.value, 10), parseInt(textShadowAngle.value, 10));
-      const sBlur = parseInt(shapeShadowBlur.value, 10);
-      const tBlur = parseInt(textShadowBlur.value, 10);
+      const sOff = getShadowOffsets(parseInt(S.shapeShadowDistance, 10), parseInt(S.shapeShadowAngle, 10));
+      const tOff = getShadowOffsets(parseInt(S.textShadowDistance, 10), parseInt(S.textShadowAngle, 10));
+      const sBlur = parseInt(S.shapeShadowBlur, 10);
+      const tBlur = parseInt(S.textShadowBlur, 10);
 
       let pad = Math.ceil(strokePx) + 4;
-      if (showBorder && shapeShadowEnabled.checked) {
+      if (showBorder && S.shapeShadowEnabled) {
         pad = Math.max(pad, strokePx + Math.abs(sOff.x) + sBlur * 2 + 4, strokePx + Math.abs(sOff.y) + sBlur * 2 + 4);
       }
-      if (textShadowEnabled.checked) {
+      if (S.textShadowEnabled) {
         pad = Math.max(pad, Math.abs(tOff.x) + tBlur * 2 + 4, Math.abs(tOff.y) + tBlur * 2 + 4);
       }
 
@@ -8183,18 +8151,18 @@ ${_getEmbeddedUploadedFontsCSS(cleanFont)}  <text x="${ccx}" y="${ccy}" dy="0.35
       const _sMargin = Math.abs(sOff.x) + sBlur * 2 + Math.abs(sOff.y) + sBlur * 2 + 40;
       const _tMargin = Math.abs(tOff.x) + tBlur * 2 + Math.abs(tOff.y) + tBlur * 2 + 40;
 
-      if (showBorder && shapeShadowEnabled.checked && sBlur > 0) {
+      if (showBorder && S.shapeShadowEnabled && sBlur > 0) {
         rootDefs += `    <filter id="svgShapeShadow" filterUnits="userSpaceOnUse" x="${- _sMargin}" y="${- _sMargin}" width="${totalW + _sMargin * 2}" height="${totalH + _sMargin * 2}">
       <feGaussianBlur stdDeviation="${(sBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
-      if (textShadowEnabled.checked && tBlur > 0) {
+      if (S.textShadowEnabled && tBlur > 0) {
         rootDefs += `    <filter id="svgTextShadow" filterUnits="userSpaceOnUse" x="${- _tMargin}" y="${- _tMargin}" width="${totalW + _tMargin * 2}" height="${totalH + _tMargin * 2}">
       <feGaussianBlur stdDeviation="${(tBlur / 2).toFixed(2)}"/>
     </filter>\n`;
       }
 
-      const res = await buildSvgCellMarkup(cx, cy, w, h, text, computedFs, cleanFont, weight, style);
+      const res = await buildSvgCellMarkup(cx, cy, w, h, text, computedFs, cleanFont, weight, style, S);
       rootDefs += res.defs;
       if (_variableFonts.has(cleanFont) && buildSvgCellMarkup._textFallbackUsed) rootDefs += _getEmbeddedUploadedFontsCSS(cleanFont);
 
@@ -8429,7 +8397,7 @@ ${res.markup}</svg>`;
 
     // ─── Circole GitHub Release & Auto-Updater ────────────────────────────────
     (function initCircoleUpdater() {
-      const CURRENT_VERSION = (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version) || '6.0-dev';
+      const CURRENT_VERSION = (window.__CIRCOLE_ENV && window.__CIRCOLE_ENV.version) || '6.0';
       const GITHUB_REPO = 'ivanalbrieu/circole';
       const ASSET_FILENAME = (window.location.pathname.toLowerCase().endsWith('index.html') ? 'index.html' : 'Circole.html');
 
